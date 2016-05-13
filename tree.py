@@ -1,8 +1,5 @@
-import numpy as np
-from graphviz import Digraph
-import time
-
 class Node:
+
   def __init__(self, x, val):
     self.l = None
     self.r = None
@@ -21,74 +18,82 @@ class Node:
     else:
       return '%s' % self.v
 
+class PTree:
 
-def validate_tree(L):
-  N = len(L)
-  if (N & (N+1)) != 0:
-    raise ValueError('List length + 1 must be a power of 2')
+  def __init__(self, L):
+    self.N = len(L)
+    self.L = L
+    self.validate()
+    self.build()
 
-  # some other really important stuff here ...
+
+  def validate(self):
+
+    if (self.N & (self.N+1)) != 0:
+      raise ValueError('List length + 1 must be a power of 2')
 
 
-def build_tree(L, export_png=False):
-  # assumes list has length of a full binary tree, given in level order
-  # but there can be "none" nodes which are not added
+  def build(self):
 
-  N = len(L)
-  validate_tree(L)
+    self.root = Node(x=self.L[0][0], val=self.L[0][1])
+    Q = [self.root]
 
-  root = Node(x=L[0][0], val=L[0][1])
-  if export_png:
+    for i in range(1, self.N, 2):
+      parent = Q.pop(0)
+
+      if parent.is_not_leaf():
+        parent.l = Node(*self.L[i])
+        parent.r = Node(*self.L[i+1])
+        Q += [parent.l, parent.r]
+
+
+  def evaluate(self, states):
+
+    node = self.root
+    
+    while node.is_not_leaf():  
+      if states[node.x] < node.v:
+        node = node.l
+      else:
+        node = node.r
+
+    return node.v
+
+  # also add "states" to do colors
+  def graphviz_export(self, filename = None):
+
+    from graphviz import Digraph
+
     dot = Digraph(format='png')
     dot.node_attr['shape'] = 'box'
-    dot.node(root.gvstr(), root.gvstr())
+    dot.node(self.root.gvstr(), self.root.gvstr())
 
-  Q = [root]
-  i = 1
-  while i < N:
-    parent = Q.pop(0)
-    lchild,rchild = (None,None)
+    Q = [self.root]
 
-    if L[i]:
-      lchild = Node(x=L[i][0], val=L[i][1])
-      Q.append(lchild)
+    for i in range(1, self.N, 2):
+      parent = Q.pop(0)
 
-    if L[i+1]:
-      rchild = Node(x=L[i+1][0], val=L[i+1][1])
-      Q.append(rchild)
-    
-    i += 2
+      if parent.is_not_leaf():
+        parent.l = Node(*self.L[i])
+        parent.r = Node(*self.L[i+1])
+        Q += [parent.l, parent.r]
 
-    if lchild and rchild:
-      parent.l = lchild
-      parent.r = rchild
-
-      if export_png:
-        for c in (lchild,rchild):
+        for c in (parent.l, parent.r):
           dot.node(c.gvstr(), c.gvstr())
           dot.edge(parent.gvstr(), c.gvstr())
 
-  if export_png:
-    dot.render('graphviz/Tree%s.gv' % time.time())
-
-  return root
-
-
-def eval_tree(node, states):
-  while node.is_not_leaf():
-    if states[node.x] < node.v:
-      node = node.l
+    if filename:
+      dot.render(filename)
     else:
-      node = node.r
-  return node.v
-
-
+      import time
+      dot.render('graphviz/PTree%s.gv' % time.time())
 
 
 
 
 
 # old code -- not sure if this works anymore
+# the reverse of what's happening now:
 
 # def tree_to_list(root):
 #   # level order traversal
