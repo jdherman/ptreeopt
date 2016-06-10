@@ -53,3 +53,9 @@ f(algorithm.population[99], plot=True)
 # lower nodes/logic cannot contradict parent logic
 # or else some branches will always evaluate false
 # lots of other "validity" gotchas.  
+
+
+# ideas from DEAP: 
+# depth-first list representation of a tree (allows for consecutive sub-trees)
+# one-point crossover mutation/slicing
+

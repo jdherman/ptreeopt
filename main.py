@@ -4,16 +4,16 @@ import matplotlib.pyplot as plt
 from tree import *
 from opt import *
 
-# algorithm = PTreeOpt()
 
-L = [(0,5), (None,3), (1,15), None, None, (None,1), (None,2.50)]
+# algorithm = PTreeOpt()
+L = [[0,5], [3], [1,15], [1], [2.50]]
 # L = [(1,10), (5,12), (3,15), (2,25), (4,30), (0,36)]
 # L = [(1,10), (None,25), (None,36)]
 T = PTree(L) # do this once at the beginning of the simulation
-
+# print T.L
 # L = gen_random_tree_as_list(3, 5)
-print T.evaluate(states=[2,16,100]) # do this every timestep
-T.graphviz_export()
+print T.evaluate(states=[5,17,100]) # do this every timestep
+T.graphviz_export('graphviz/smalltest')
 
 # Need to add:
 # feature variable names
