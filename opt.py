@@ -23,7 +23,7 @@ class PTreeOpt():
   def initialize(self):
     self.population = [self.random_tree() for _ in range(self.popsize)]
     self.objectives = [self.f(P) for P in self.population]
-          
+
 
   def iterate(self):
 
@@ -61,27 +61,25 @@ class PTreeOpt():
     # datetime.timedelta(seconds=time.time()-start_time))
   
 
-  # maybe a parameter for tree sparsity (probability of None's)?
-  # right now this only makes balanced trees
-  def random_tree(self):
+  def random_tree(self, ratio = 0.5):
     depth = np.random.randint(2, self.max_depth+1)
-    num_nodes = 2**depth - 1
-    num_leaves = 2**(depth-1)
     L = []
+    S = [0]
 
-    for i in range(num_nodes):
-      if i < num_leaves-1:
+    while S:
+      current_depth = S.pop()
+
+      # action node
+      if current_depth == depth or (current_depth > 0 and np.random.rand() < ratio):
+        L.append([np.random.uniform(*self.action_bounds[0])])
+
+      else:
         x = np.random.choice(self.num_features)
         v = np.random.uniform(*self.feature_bounds[x])
-      else:
-        x = None
-        v = np.random.uniform(*self.action_bounds[0])
-
-      # if you want an unbalanced tree, some of them will append "none" instead
-      L.append((x, v))
+        L.append([x,v])
+        S += [current_depth+1]*2
 
     return PTree(L)
-
 
   def crossover(self, P1, P2):
     pass # do this with lists or trees?

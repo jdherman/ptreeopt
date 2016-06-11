@@ -12,7 +12,7 @@ class Feature(Node):
 
   def __init__(self, contents):
     self.index, self.threshold = contents
-    self.arity = 2
+    self.is_feature = True
     super(Feature, self).__init__()
 
   def __str__(self):
@@ -23,7 +23,7 @@ class Action(Node):
 
   def __init__(self, contents):
     self.value = contents[0]
-    self.arity = 0
+    self.is_feature = False
     super(Action, self).__init__()
 
   def __str__(self):
@@ -34,7 +34,8 @@ class PTree:
 
   def __init__(self, L):
     self.N = len(L)
-    self.L = L
+    self.L = [Feature(item) if len(item)==2 else Action(item) for item in L]
+    self.root = None
     # self.validate()
     self.build()
 
@@ -46,58 +47,36 @@ class PTree:
 
 
   def build(self):
-
-    self.root = Feature(self.L[0])
-    S = [self.root]
+    self.root = self.L[0]
     parent = self.root
 
-    i = 1
+    S = []
     
-    while i < self.N:
+    for child in self.L:
 
-      if parent.arity == 2:
+      if parent.is_feature:
+        parent.l = child
+        S.append(parent)
 
-        child = self.L[i]
-        if parent.l is None:
+      elif len(S) > 0:
+        parent = S.pop()
+        parent.r = child
 
-          if len(child) == 2:
-            parent.l = Feature(child)
-            S.append(parent.l)
-          else:
-            parent.l = Action(child)
-
-          parent = parent.l
-
-        else:
-          if len(child) == 2:
-            parent.r = Feature(child)
-            S.append(parent.r)
-          else:
-            parent.r = Action(child)
-
-          parent = parent.r
-
-        i += 1
-
-      else:
-
-        if len(S) > 0:
-          parent = S.pop()
-
-      
+      parent = child
 
 
   def evaluate(self, states):
 
     node = self.root
-    
-    while node.arity == 2:  
+
+    while node.is_feature:  
       if states[node.index] < node.threshold:
         node = node.l
       else:
         node = node.r
 
     return node.value
+
 
   # also add "states" to do colors
   def graphviz_export(self, filename = None):
@@ -110,9 +89,8 @@ class PTree:
     dot.node(str(parent), str(parent))
     S = []
 
-    while parent.arity == 2 or len(S) > 0:
-
-      if parent.arity == 2:
+    while parent.is_feature or len(S) > 0:
+      if parent.is_feature:
         S.append(parent)
         child = parent.l
 

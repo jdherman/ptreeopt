@@ -18,7 +18,7 @@ def f(P, plot=False):
     W = S[t-1] + Q[t]
     R[t] = min(P.evaluate([W]), W)
     S[t] = min(W - R[t], K)
-    obj += R
+    obj += R[t]
 
   if plot:
     plt.plot(S+Q)
@@ -34,11 +34,11 @@ action_bounds = [(0,100)]
 algorithm = PTreeOpt(f, 1000, feature_bounds, action_bounds)
 
 algorithm.initialize()
-# print algorithm.objectives
+print algorithm.objectives
 
-algorithm.population[99].graphviz_export('graphviz/test')
-
-f(algorithm.population[99], plot=True)
+algorithm.population[0].graphviz_export('graphviz/test')
+# print [i for i in algorithm.population[0].L]
+f(algorithm.population[0], plot=True)
 
 
 
