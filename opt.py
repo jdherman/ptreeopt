@@ -1,7 +1,6 @@
 from __future__ import division
 import numpy as np
-import time
-import copy
+import time, datetime, copy
 from tree import *
 
 # want to use Dave's "solution" and "problem" classes?
@@ -9,7 +8,8 @@ from tree import *
 class PTreeOpt():
 
   def __init__(self, f, max_NFE, feature_bounds, action_bounds, 
-               population_size = 100, mu = 15, max_depth = 4, mut_prob = 0.9, feature_names=None):
+               population_size = 100, mu = 15, max_depth = 4, mut_prob = 0.9, 
+               feature_names = None, log_frequency = None):
 
     self.f = f
     self.max_NFE = max_NFE
@@ -22,18 +22,23 @@ class PTreeOpt():
     self.mut_prob = 0.9
     self.feature_names = feature_names
     self.nfe = 0
+    self.log_frequency = log_frequency
 
 
   def initialize(self):
     self.population = [self.random_tree() for _ in range(self.popsize)]
     self.objectives = [self.f(P) for P in self.population]
+    self.best_f = None
+    self.best_P = None
 
 
   def iterate(self):
 
     ix = np.argsort(self.objectives)[:self.mu]
-    self.best_f = self.objectives[ix[0]]
-    self.best_P = self.population[ix[0]]
+
+    if self.best_f is None or self.objectives[ix[0]] < self.best_f:
+      self.best_f = self.objectives[ix[0]]
+      self.best_P = self.population[ix[0]]
     parents = [self.population[i] for i in ix]
     
     for i in range(self.popsize):
@@ -52,13 +57,16 @@ class PTreeOpt():
     
     self.initialize()
 
+    if self.log_frequency:
+      print 'NFE\tTime (s)\tBest f'
+
     while not self.nfe >= self.max_NFE:
       self.iterate()
-      
-      # if self.log_frequency is not None and self.nfe >= last_log + self.log_frequency:
-        # pass # do something with these stats, append them
-        # self.nfe,
-        # datetime.timedelta(seconds=time.time()-start_time))
+
+      if self.log_frequency is not None and self.nfe >= last_log + self.log_frequency:
+        elapsed = datetime.timedelta(seconds=time.time()-start_time).seconds
+        print '%d\t%s\t%0.3f\t%s' % (self.nfe, elapsed, self.best_f, self.best_P)        
+        last_log = self.nfe    
           
 
     # save one last point here in stats
@@ -120,10 +128,10 @@ class PTreeOpt():
     # do mutation in normalized [0,1] to avoid specifying sigma
     lb,ub = bounds
     xnorm = (x-lb)/(ub-lb)
-    x_trial = xnorm + np.random.normal(0, scale=0.5)
+    x_trial = xnorm + np.random.normal(0, scale=0.1)
     
     while np.any((x_trial > 1) | (x_trial < 0)):
-      x_trial = xnorm + np.random.normal(0, scale=0.5)
+      x_trial = xnorm + np.random.normal(0, scale=0.1)
     
     return lb + x_trial*(ub-lb)
 

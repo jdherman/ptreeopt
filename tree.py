@@ -5,7 +5,7 @@ class Node(object):
     self.r = None
 
   def __str__(self):
-    return str(self.v)
+    raise NotImplementedError('Must be defined in a child class')
 
 
 class Feature(Node):
@@ -57,6 +57,8 @@ class PTree:
 
     # check if subtree length from the root is equal to the full length
     # (confirms a valid binary tree in this case)
+    # this should never happen but is useful for error checking, 
+    # sometimes the crossover messes things up
 
     ix = self.get_subtree(0)
     if len(self.L[ix]) != len(self.L):
