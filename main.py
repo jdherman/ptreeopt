@@ -17,15 +17,3 @@ T = PTree(L) # do this once at the beginning of the simulation
 # L = gen_random_tree_as_list(3, 5)
 print T.evaluate(states=[5,17,100]) # do this every timestep
 T.graphviz_export('graphviz/smalltest')
-
-# Need to add:
-# feature variable names
-# action variable name
-# discrete vs. continuous actions (it matters)
-# operators
-# feature/action bounds scaling
-
-# to validate a tree ... this will be important
-# lower nodes/logic cannot contradict parent logic
-# or else it will always evaluate false
-# lots of other "validity" gotchas.  

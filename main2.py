@@ -25,37 +25,40 @@ def f(P, plot=False):
     plt.plot(R)
     plt.show()
 
-  return -obj
+  return -obj # minimizes by default
 
 # 1 feature: res. storage
-feature_bounds = [(0,1000)]
-action_bounds = [(0,100)]
+feature_bounds = [[0,1000]]
+names = ['Storage']
+action_bounds = [0,100]
 
-algorithm = PTreeOpt(f, 1000, feature_bounds, action_bounds)
+algorithm = PTreeOpt(f, 10000, feature_bounds, action_bounds, feature_names=names, population_size=100)
 
 algorithm.initialize()
-print algorithm.objectives
+# print algorithm.objectives
 
-algorithm.population[0].graphviz_export('graphviz/test')
+algorithm.run()
+print algorithm.best_P
+print algorithm.best_f
 # print [i for i in algorithm.population[0].L]
-f(algorithm.population[0], plot=True)
+# f(algorithm.population[0], plot=True)
+f(algorithm.best_P, plot=True)
 
+algorithm.best_P.graphviz_export('graphviz/bestP')
 
 
 
 # Need to add:
+
+
 # feature variable names
 # action variable name
-# discrete vs. continuous actions (it matters)
+# to make these work, they must be properties of the nodes
+
+# discrete vs. continuous actions (it matters) -- not right now.
 # operators (!!) mutation first
 
 # to validate a tree ... this will be important
-# lower nodes/logic cannot contradict parent logic
-# or else some branches will always evaluate false
-# lots of other "validity" gotchas.  
-
-
-# ideas from DEAP: 
-# depth-first list representation of a tree (allows for consecutive sub-trees)
-# one-point crossover mutation/slicing
+# lower nodes/logic (should not) contradict parent logic
+# or else some branches will always evaluate false (this might be ok)
 

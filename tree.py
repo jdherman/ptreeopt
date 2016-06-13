@@ -12,11 +12,12 @@ class Feature(Node):
 
   def __init__(self, contents):
     self.index, self.threshold = contents
+    self.name = 'X[%d]' % self.index
     self.is_feature = True
     super(Feature, self).__init__()
 
   def __str__(self):
-    return 'X[%d] < %s' % (self.index, self.threshold)
+    return '%s < %0.3f' % (self.name, self.threshold)
 
 
 class Action(Node):
@@ -27,27 +28,46 @@ class Action(Node):
     super(Action, self).__init__()
 
   def __str__(self):
-    return '%s' % self.value
+    return '%0.3f' % self.value
 
 
 class PTree:
 
-  def __init__(self, L):
-    self.N = len(L)
-    self.L = [Feature(item) if len(item)==2 else Action(item) for item in L]
+  def __init__(self, L, feature_names=None):
+    self.L = []
+    
+    for item in L:
+      if len(item)==2:
+        f = Feature(item)
+        if feature_names:
+          f.name = feature_names[f.index]
+        self.L.append(f)  
+      else:
+        self.L.append(Action(item))
+
     self.root = None
-    # self.validate()
     self.build()
 
 
-  # def validate(self):
+  def __str__(self):
+    return ', '.join([str(item) for item in self.L])
 
-  #   if (self.N & (self.N+1)) != 0:
-  #     raise ValueError('List length + 1 must be a power of 2')
+
+  def validate(self):
+
+    # check if subtree length from the root is equal to the full length
+    # (confirms a valid binary tree in this case)
+
+    ix = self.get_subtree(0)
+    if len(self.L[ix]) != len(self.L):
+      raise RuntimeError('Invalid tree encountered: ' + self)
 
 
   def build(self):
+
     self.root = self.L[0]
+    self.N = len(self.L)
+    self.validate()
     parent = self.root
 
     S = []
@@ -78,6 +98,29 @@ class PTree:
     return node.value
 
 
+  def get_subtree(self, begin):
+    """Adapted from DEAP: return the indices of the subtree
+    starting at list index "begin".
+    """
+    end = begin + 1
+    # print self
+    # print ' '
+
+
+    if not self.L[begin].is_feature:
+      return slice(begin,end)
+
+    total = 2
+    while total > 0:
+      if self.L[end].is_feature:
+        total += 1
+      else:
+        total -= 1
+      end += 1
+      # print 'Begin: %d, End: %d, N: %d, total: %d' % (begin, end, self.N, total)
+    return slice(begin, end)
+
+
   # also add "states" to do colors
   def graphviz_export(self, filename = None):
 
@@ -106,4 +149,4 @@ class PTree:
       dot.render(filename)
     else:
       import time
-      dot.render('graphviz/PTree%s.gv' % time.time())
+      dot.render('graphviz/PTree%s' % time.time())
