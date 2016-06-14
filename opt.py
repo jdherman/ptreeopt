@@ -44,6 +44,11 @@ class PTreeOpt():
     for i in range(self.popsize):
       pair = np.random.choice(parents, 2, replace=False)
       child = self.crossover(*pair)[0]
+
+      # bloat control
+      if child.get_depth() > self.max_depth:
+        child = np.random.choice(pair)
+
       self.population[i] = self.mutate(child)
 
     self.objectives = [self.f(P) for P in self.population]

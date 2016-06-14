@@ -123,6 +123,18 @@ class PTree:
     return slice(begin, end)
 
 
+  def get_depth(self):
+    # from deap also
+    stack = [0]
+    max_depth = 0
+    for item in self.L:
+        depth = stack.pop()
+        max_depth = max(max_depth, depth)
+        if item.is_feature:
+          stack.extend([depth + 1] * 2)
+    return max_depth
+
+
   # also add "states" to do colors
   def graphviz_export(self, filename = None):
 
