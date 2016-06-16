@@ -150,13 +150,15 @@ class PTree:
       if parent.is_feature:
         S.append(parent)
         child = parent.l
+        label = 'T'
 
       else:
         parent = S.pop()
         child = parent.r
+        label = 'F'
 
       dot.node(str(child), str(child))
-      dot.edge(str(parent), str(child))
+      dot.edge(str(parent), str(child), label=label)
       parent = child
 
     if filename:
