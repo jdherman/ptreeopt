@@ -28,7 +28,10 @@ class Action(Node):
     super(Action, self).__init__()
 
   def __str__(self):
-    return '%0.3f' % self.value
+    try:
+      return '%0.3f' % self.value
+    except TypeError:
+      return self.value
 
 
 class PTree:

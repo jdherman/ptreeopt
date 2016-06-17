@@ -7,19 +7,34 @@ from tree import *
 
 class PTreeOpt():
 
-  def __init__(self, f, feature_bounds, action_bounds, 
-               population_size = 100, mu = 15, max_depth = 4, mut_prob = 0.9, 
-               feature_names = None):
+  def __init__(self, f, feature_bounds, discrete_actions = False, action_bounds = None, 
+               action_names = None, population_size = 100, mu = 15, 
+               max_depth = 4, mut_prob = 0.9, feature_names = None):
 
     self.f = f
     self.num_features = len(feature_bounds)
     self.feature_bounds = feature_bounds
+    self.discrete_actions = discrete_actions
     self.action_bounds = action_bounds
+    self.action_names = action_names
     self.popsize = population_size
     self.mu = mu
     self.max_depth = max_depth
     self.mut_prob = 0.9
     self.feature_names = feature_names
+
+    if feature_names is not None and len(feature_names) != len(feature_bounds):
+      raise ValueError('feature_names and feature_bounds must be the same length.')
+
+    if discrete_actions:
+      if action_names is None or action_bounds is not None:
+        raise ValueError('''discrete_actions must be run with action_names, 
+        (which are strings), and not action_bounds.''')
+    else:
+      if action_bounds is None:
+        raise ValueError('''Real-valued actions (which is the case by 
+        default, discrete_actions=False) must include action_bounds. 
+        Currently only one action is supported, so bounds = [lower, upper].''')
 
 
   def iterate(self):
@@ -65,7 +80,7 @@ class PTreeOpt():
         elapsed = datetime.timedelta(seconds=time.time()-start_time).seconds
         print '%d\t%s\t%0.3f\t%s' % (nfe, elapsed, self.best_f, self.best_P)        
         last_log = nfe    
-          
+
 
     # save one last point here in stats
     # self.nfe,
@@ -82,7 +97,10 @@ class PTreeOpt():
 
       # action node
       if current_depth == depth or (current_depth > 0 and np.random.rand() < terminal_ratio):
-        L.append([np.random.uniform(*self.action_bounds)])
+        if self.discrete_actions:
+          L.append([str(np.random.choice(self.action_names))])
+        else:
+          L.append([np.random.uniform(*self.action_bounds)])
 
       else:
         x = np.random.choice(self.num_features)
@@ -116,7 +134,10 @@ class PTreeOpt():
         if item.is_feature:
           item.threshold = self.bounded_gaussian(item.threshold, self.feature_bounds[item.index])
         else:
-          item.value = self.bounded_gaussian(item.value, self.action_bounds)
+          if self.discrete_actions:
+            item.value = str(np.random.choice(self.action_names))
+          else:
+            item.value = self.bounded_gaussian(item.value, self.action_bounds)
 
     return P
 
