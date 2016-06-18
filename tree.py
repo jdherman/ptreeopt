@@ -55,6 +55,12 @@ class PTree:
   def __str__(self):
     return ', '.join([str(item) for item in self.L])
 
+  def __getitem__(self,i):
+    return self.L[i]
+
+  def __setitem__(self,i,v):
+    self.L[i] = v
+
 
   def validate(self):
 
@@ -65,7 +71,7 @@ class PTree:
 
     ix = self.get_subtree(0)
     if len(self.L[ix]) != len(self.L):
-      raise RuntimeError('Invalid tree encountered: ' + self)
+      raise RuntimeError('Invalid tree encountered: ' + str(self))
 
 
   def build(self):
@@ -136,6 +142,73 @@ class PTree:
         if item.is_feature:
           stack.extend([depth + 1] * 2)
     return max_depth
+
+
+  def prune(self):
+
+    i = 0
+
+    while i < len(self.L):
+
+      if not self[i].is_feature:
+        i += 1
+        continue
+
+      l = self.get_subtree(i+1)
+      r = self.get_subtree(l.stop)
+
+      if self._prune_subtree(i, r, mode='right') or \
+         self._prune_subtree(i, l, mode='left') or \
+         self._prune_duplicate_actions(i, l, r):
+        continue
+
+      i += 1
+
+    self.build()
+
+
+  def _prune_subtree(self, i, s, mode):
+    '''Removes illogical subtree relationships.
+    If a feature in the right subtree has a threshold less than current,
+    Replace it with its own right subtree. If a feature in the left
+    subtree has a threshold greater than current, replace it with its left subtree.'''
+
+    current = self[i]
+
+    for j in range(s.start, s.stop):
+      
+      child = self[j]
+
+      if child.is_feature and child.index == current.index:
+        
+        if mode == 'right' and child.threshold < current.threshold:
+          rsub = self.get_subtree(self.get_subtree(j+1).stop)
+          self[self.get_subtree(j)] = self[rsub]
+          return True
+
+        elif mode == 'left' and child.threshold > current.threshold:
+          lsub = self.get_subtree(j+1)
+          self[self.get_subtree(j)] = self[lsub]
+          return True
+
+    return False
+
+
+  def _prune_duplicate_actions(self, i, l, r):
+
+    lchild = self[l][0]
+    rchild = self[r][0]
+
+    if not lchild.is_feature and \
+       not rchild.is_feature and \
+       i != 0 and \
+       lchild.value == rchild.value:
+        self.L[i] = lchild
+        self.L[r] = [] # MUST delete right one first
+        self.L[l] = []
+        return True
+
+    return False
 
 
   # also add "states" to do colors

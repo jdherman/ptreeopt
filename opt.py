@@ -54,6 +54,7 @@ class PTreeOpt():
       if child.get_depth() > self.max_depth:
         child = np.random.choice(pair)
 
+      child.prune() # remove illogical subtrees
       self.population[i] = self.mutate(child)
 
     self.objectives = [self.f(P) for P in self.population]

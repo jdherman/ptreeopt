@@ -19,7 +19,7 @@ def max_release(S):
 
 # simplified reservoir simulation
 df = pd.read_csv('folsom-daily.csv', index_col=0, parse_dates=True)
-df = df['1955-10-01':'2015-09-30']
+df = df['1995-10-01':'2015-09-30']
 Q = df.inflow.values
 K = 975 # capacity, TAF
 dowy = np.array([water_day(d) for d in df.index.dayofyear])
@@ -60,7 +60,8 @@ def f(P, mode='optimization'):
     # R[t] = np.clip(R[t], (1-p)*R[t-1], (1+p)*R[t-1])
 
     # max/min release
-    R[t] = np.clip(R[t], S[t-1] + Q[t], max_release(S[t-1]))
+    R[t] = min(target, S[t-1] + Q[t])
+    R[t] = min(R[t], max_release(S[t-1]))
     R[t] +=  max(S[t-1] + Q[t] - R[t] - K, 0) # spill
     S[t] = S[t-1] + Q[t] - R[t]
 
@@ -100,13 +101,10 @@ algorithm = PTreeOpt(f,
                     action_names = ['Release_Demand', 'Hedge_80', 'Hedge_50', 'Flood_Control']
                     )
 
-# print algorithm.objectives
 
 algorithm.run(max_nfe = 2000, log_frequency = 100)
 print algorithm.best_P
 print algorithm.best_f
-# print [i for i in algorithm.population[0].L]
-# f(algorithm.population[0], plot=True)
 
 algorithm.best_P.graphviz_export('graphviz/bestPfol')
 
@@ -114,22 +112,7 @@ results = f(algorithm.best_P, mode='simulation')
 plot_results(results)
 
 
-
-
-# Need to add:
-
-
-# feature variable names
-# action variable name
-# to make these work, they must be properties of the nodes
-
-# discrete vs. continuous actions (it matters) -- not right now.
-# operators (!!) mutation first
-
-# to validate a tree ... this will be important
-# lower nodes/logic (should not) contradict parent logic
-# or else some branches will always evaluate false (this might be ok)
-
-
-
-
+# what next? the releases are too flashy (should impose ramping)
+# also the flood control "0" value makes no sense, but we have to 
+# penalize the search from using this somehow.
+# Biggest issue: need more diversity in the population, especially after pruning.
