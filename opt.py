@@ -3,13 +3,12 @@ import numpy as np
 import time, datetime, copy
 from tree import *
 
-# want to use Dave's "solution" and "problem" classes?
 
 class PTreeOpt():
 
   def __init__(self, f, feature_bounds, discrete_actions = False, action_bounds = None, 
                action_names = None, population_size = 100, mu = 15, 
-               max_depth = 4, mut_prob = 0.9, feature_names = None):
+               max_depth = 4, mut_prob = 0.9, cx_prob = 0.9, feature_names = None):
 
     self.f = f
     self.num_features = len(feature_bounds)
@@ -20,7 +19,8 @@ class PTreeOpt():
     self.popsize = population_size
     self.mu = mu
     self.max_depth = max_depth
-    self.mut_prob = 0.9
+    self.mut_prob = mut_prob
+    self.cx_prob = cx_prob
     self.feature_names = feature_names
 
     if feature_names is not None and len(feature_names) != len(feature_bounds):
@@ -36,28 +36,36 @@ class PTreeOpt():
         default, discrete_actions=False) must include action_bounds. 
         Currently only one action is supported, so bounds = [lower, upper].''')
 
+    if mu > population_size:
+      raise ValueError('''Number of parents (mu) cannot be greater than 
+      the population_size.''')
+
 
   def iterate(self):
 
-    ix = np.argsort(self.objectives)[:self.mu]
+    ix = np.argsort(self.objectives)
+    self.population = self.population[ix] 
+    self.objectives = self.objectives[ix]
 
-    if self.best_f is None or self.objectives[ix[0]] < self.best_f:
-      self.best_f = self.objectives[ix[0]]
-      self.best_P = self.population[ix[0]]
-    parents = [self.population[i] for i in ix]
+    if self.best_f is None or self.objectives[0] < self.best_f:
+      self.best_f = self.objectives[0]
+      self.best_P = self.population[0]
 
-    for i in range(self.popsize):
-      pair = np.random.choice(parents, 2, replace=False)
-      child = self.crossover(*pair)[0]
+    for i in range(self.mu, self.popsize):
+      
+      if np.random.rand() < self.cx_prob:
+        P1,P2 = np.random.choice(self.population[:self.mu], 2, replace=False)
+        child = self.crossover(P1,P2)[0]
 
-      # bloat control
-      if child.get_depth() > self.max_depth:
-        child = np.random.choice(pair)
+        # bloat control
+        while child.get_depth() > self.max_depth:
+          child = self.crossover(P1,P2)[0]
 
-      child.prune() # remove illogical subtrees
+      else: # replace with random new tree
+        child = self.random_tree()
+
       self.population[i] = self.mutate(child)
-
-    self.objectives = [self.f(P) for P in self.population]
+      self.objectives[i] = self.f(self.population[i])
 
 
   def run(self, max_nfe = 100, log_frequency = None):
@@ -65,15 +73,15 @@ class PTreeOpt():
     start_time = time.time()
     nfe,last_log = 0,0
 
-    self.population = [self.random_tree() for _ in range(self.popsize)]
-    self.objectives = [self.f(P) for P in self.population]
+    self.population = np.array([self.random_tree() for _ in range(self.popsize)])
+    self.objectives = np.array([self.f(P) for P in self.population])
     self.best_f = None
     self.best_P = None
     
     if log_frequency:
       print 'NFE\telapsed_time\tbest_f'
 
-    while nfe <= max_nfe:
+    while nfe < max_nfe:
       self.iterate()
       nfe += self.popsize
 
@@ -81,11 +89,6 @@ class PTreeOpt():
         elapsed = datetime.timedelta(seconds=time.time()-start_time).seconds
         print '%d\t%s\t%0.3f\t%s' % (nfe, elapsed, self.best_f, self.best_P)        
         last_log = nfe    
-
-
-    # save one last point here in stats
-    # self.nfe,
-    # datetime.timedelta(seconds=time.time()-start_time))
   
 
   def random_tree(self, terminal_ratio = 0.5):
@@ -124,6 +127,8 @@ class PTreeOpt():
     P1.L[slice1], P2.L[slice2] = P2.L[slice2], P1.L[slice1]
     P1.build()
     P2.build()
+    P1.prune()
+    P2.prune()
     return (P1,P2)
 
 
