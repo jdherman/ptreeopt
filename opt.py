@@ -51,6 +51,15 @@ class PTreeOpt():
       self.best_f = self.objectives[0]
       self.best_P = self.population[0]
 
+    # first: mutate the parents, only keep child if it's better
+    for i in range(self.mu):
+      child = self.mutate(self.population[i], mutate_actions = False)
+      obj = self.f(child)
+      if obj < self.objectives[i]:
+        self.population[i] = child
+        self.objectives[i] = obj
+
+    # then crossover to develop the rest of the population
     for i in range(self.mu, self.popsize):
       
       if np.random.rand() < self.cx_prob:
@@ -70,7 +79,7 @@ class PTreeOpt():
       self.objectives[i] = self.f(self.population[i])
 
 
-  def run(self, max_nfe = 100, log_frequency = None, image_path = None):
+  def run(self, max_nfe = 100, log_frequency = None):
             
     start_time = time.time()
     nfe,last_log = 0,0
@@ -81,6 +90,7 @@ class PTreeOpt():
     self.best_P = None
     
     if log_frequency:
+      snapshots = {'nfe': [], 'time': [], 'best_f': [], 'best_P': []}
       print 'NFE\telapsed_time\tbest_f'
 
     while nfe < max_nfe:
@@ -90,9 +100,14 @@ class PTreeOpt():
       if log_frequency is not None and nfe >= last_log + log_frequency:
         elapsed = datetime.timedelta(seconds=time.time()-start_time).seconds
         print '%d\t%s\t%0.3f\t%s' % (nfe, elapsed, self.best_f, self.best_P)        
+        snapshots['nfe'].append(nfe)
+        snapshots['time'].append(elapsed)
+        snapshots['best_f'].append(self.best_f)
+        snapshots['best_P'].append(self.best_P)
         last_log = nfe
-        if image_path:
-          self.best_P.graphviz_export(image_path + '-nfe-' + '%06d' % nfe + '.png')
+    
+    if log_frequency:
+      return snapshots
   
 
   def random_tree(self, terminal_ratio = 0.5):
@@ -116,7 +131,9 @@ class PTreeOpt():
         L.append([x,v])
         S += [current_depth+1]*2
 
-    return PTree(L, self.feature_names)
+    T = PTree(L, self.feature_names)
+    T.prune()
+    return T
 
 
   def crossover(self, P1, P2):
@@ -134,14 +151,14 @@ class PTreeOpt():
     return (P1,P2)
 
 
-  def mutate(self, P):
+  def mutate(self, P, mutate_actions = True):
     P = copy.deepcopy(P)
 
     for item in P.L:
       if np.random.rand() < self.mut_prob:
         if item.is_feature:
           item.threshold = self.bounded_gaussian(item.threshold, self.feature_bounds[item.index])
-        else:
+        elif mutate_actions:
           if self.discrete_actions:
             item.value = str(np.random.choice(self.action_names))
           else:

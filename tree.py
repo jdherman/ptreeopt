@@ -212,13 +212,13 @@ class PTree:
 
 
   # also add "states" to do colors
-  def graphviz_export(self, filename):
+  def graphviz_export(self, filename, dpi = 300):
 
     import pygraphviz as pgv
     G = pgv.AGraph(directed=True)
     G.node_attr['shape'] = 'box'
     G.graph_attr['size'] = '2!,2!'
-    G.graph_attr['dpi'] = '300'
+    G.graph_attr['dpi'] = str(dpi)
     
     parent = self.root
     G.add_node(str(parent))
