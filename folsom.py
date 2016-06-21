@@ -95,30 +95,27 @@ def plot_results(df):
   df.demand.plot(color='green', linewidth=2)
   plt.show()
 
-np.random.seed(1337)
-
-feature_bounds = [[0,1000], [1,365], [0,300]]
-feature_names = ['Storage', 'Day', 'TDI']
-
+np.random.seed(13)
 
 
 algorithm = PTreeOpt(f, 
-                    feature_bounds = feature_bounds,
-                    feature_names = feature_names,
+                    feature_bounds = [[0,1000], [1,365], [0,300]],
+                    feature_names = ['Storage', 'Day', 'TDI'],
                     discrete_actions = True,
                     action_names = ['Release_Demand', 'Hedge_80', 'Hedge_50', 'Flood_Control'],
                     mu = 7,
                     cx_prob = 0.50,
                     population_size = 50,
-                    max_depth = 2
+                    max_depth = 3
                     )
 
 
-algorithm.run(max_nfe = 2000, log_frequency = 100)
+algorithm.run(max_nfe = 2000, log_frequency = 50, image_path = 'figs/anim/ptree')
+
 print algorithm.best_P
 print algorithm.best_f
 
-algorithm.best_P.graphviz_export('graphviz/bestPfol')
+algorithm.best_P.graphviz_export('figs/bestPfol')
 
 results = f(algorithm.best_P, mode='simulation')
 plot_results(results)
@@ -128,6 +125,6 @@ plot_results(results)
 # L = [['Flood_Control']]
 # L = [[1,220], ['Flood_Control'], ['Release_Demand']]
 # P = PTree(L)
-# P.graphviz_export('graphviz/whatever')
+# P.graphviz_export('graphviz/whatever.png')
 # results = f(P, mode='simulation')
 # plot_results(results)

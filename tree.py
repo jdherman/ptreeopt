@@ -212,14 +212,16 @@ class PTree:
 
 
   # also add "states" to do colors
-  def graphviz_export(self, filename = None):
+  def graphviz_export(self, filename):
 
-    from graphviz import Digraph
-    dot = Digraph(format='png')
-    dot.node_attr['shape'] = 'box'
+    import pygraphviz as pgv
+    G = pgv.AGraph(directed=True)
+    G.node_attr['shape'] = 'box'
+    G.graph_attr['size'] = '2!,2!'
+    G.graph_attr['dpi'] = '300'
     
     parent = self.root
-    dot.node(str(parent), str(parent))
+    G.add_node(str(parent))
     S = []
 
     while parent.is_feature or len(S) > 0:
@@ -233,12 +235,9 @@ class PTree:
         child = parent.r
         label = 'F'
 
-      dot.node(str(child), str(child))
-      dot.edge(str(parent), str(child), label=label)
+      G.add_node(str(child))
+      G.add_edge(str(parent), str(child), label=label)
       parent = child
 
-    if filename:
-      dot.render(filename)
-    else:
-      import time
-      dot.render('graphviz/PTree%s' % time.time())
+    G.layout(prog='dot')
+    G.draw(filename)

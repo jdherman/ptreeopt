@@ -64,11 +64,13 @@ class PTreeOpt():
       else: # replace with random new tree
         child = self.random_tree()
 
-      self.population[i] = self.mutate(child)
+      child = self.mutate(child)
+      child.prune()
+      self.population[i] = child
       self.objectives[i] = self.f(self.population[i])
 
 
-  def run(self, max_nfe = 100, log_frequency = None):
+  def run(self, max_nfe = 100, log_frequency = None, image_path = None):
             
     start_time = time.time()
     nfe,last_log = 0,0
@@ -88,7 +90,9 @@ class PTreeOpt():
       if log_frequency is not None and nfe >= last_log + log_frequency:
         elapsed = datetime.timedelta(seconds=time.time()-start_time).seconds
         print '%d\t%s\t%0.3f\t%s' % (nfe, elapsed, self.best_f, self.best_P)        
-        last_log = nfe    
+        last_log = nfe
+        if image_path:
+          self.best_P.graphviz_export(image_path + '-nfe-' + '%06d' % nfe + '.png')
   
 
   def random_tree(self, terminal_ratio = 0.5):
@@ -127,8 +131,6 @@ class PTreeOpt():
     P1.L[slice1], P2.L[slice2] = P2.L[slice2], P1.L[slice1]
     P1.build()
     P2.build()
-    P1.prune()
-    P2.prune()
     return (P1,P2)
 
 
