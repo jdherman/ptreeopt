@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pickle
 from opt import *
 import folsom
+import pandas as pd
 
 np.random.seed(13)
 
@@ -23,7 +24,7 @@ algorithm = PTreeOpt(folsom.f,
 
 
 
-snapshots = pickle.load(open('snapshots-reoptimized-13.pkl', 'rb'))
+snapshots = pickle.load(open('snapshots-historical-13.pkl', 'rb'))
 
 # if animating ...
 # for i,P in enumerate(snapshots['best_P']):
@@ -45,9 +46,36 @@ snapshots = pickle.load(open('snapshots-reoptimized-13.pkl', 'rb'))
 
 
 P = snapshots['best_P'][-1]
+print P
 df = folsom.f(P, mode='simulation')
-folsom.plot_results(df)
+df.policy.ix[0] = df.policy.ix[1]
 
+plt.figure(figsize=(10, 3)) 
+
+# folsom.plot_results(df)
+
+# P.graphviz_export('figs/best.svg')
+colors = ['cornsilk', 'lightsteelblue', 'indianred']
+df.storage.plot(color='0.6', linewidth=2)
+df.Ss.plot(color='k', linewidth=2)
+
+for pol, c in zip(set(df.policy), colors):
+  print pol
+  first = df.index[(df.policy == pol) & (df.policy.shift(1) != pol)]
+  last = df.index[(df.policy == pol) & (df.policy.shift(-1) != pol)]
+
+  for f,l in zip(first,last):
+    plt.axvspan(f,l+pd.Timedelta('1 day'), facecolor=c, edgecolor='none', alpha=0.6)
+
+
+plt.title('Folsom Reservoir Storage, TAF', family='OfficinaSanITCMedium', loc='left')
+plt.legend(['Observed', 'Simulated'], loc=3, ncol=3)
+plt.ylim([0,1000])
+# plt.show()
+
+plt.savefig('figs/best-historical-ts-policy.svg')
+
+# plt.show()
 
 
 # algorithm.best_P.graphviz_export('figs/bestPfol.png')

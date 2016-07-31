@@ -34,6 +34,7 @@ def f(P, mode='optimization'):
   S,R,target = np.zeros(T),np.zeros(T),np.zeros(T)
   cost = 0
   S[0] = df.storage.values[0]
+  policies = [None]
 
   for t in range(1,T):
 
@@ -52,6 +53,9 @@ def f(P, mode='optimization'):
       else:
         target[t] = max(S[t-1] + TDI - K, 0)
 
+    if mode == 'simulation':
+      policies.append(policy)
+
     # max/min release
     R[t] = min(target[t], S[t-1] + Q[t])
     R[t] = min(R[t], max_release(S[t-1]))
@@ -68,6 +72,7 @@ def f(P, mode='optimization'):
     df['Rs'] = pd.Series(R, index=df.index)
     df['demand'] = pd.Series(D, index=df.index)
     df['target'] = pd.Series(target, index=df.index)
+    df['policy'] = pd.Series(policies, index=df.index, dtype='category')
     return df
   else:
     if fit_historical:
@@ -153,5 +158,5 @@ dowy = np.array([water_day(d) for d in df.index.dayofyear])
 D = 4 + 3*np.sin(2*np.pi*dowy/365 - np.pi)
 T = len(Q)
 
-fit_historical = False
+fit_historical = True
 init_plotting()

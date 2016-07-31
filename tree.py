@@ -17,7 +17,7 @@ class Feature(Node):
     super(Feature, self).__init__()
 
   def __str__(self):
-    return '%s < %0.3f' % (self.name, self.threshold)
+    return '%s < %d' % (self.name, self.threshold)
 
 
 class Action(Node):
@@ -217,8 +217,8 @@ class PTree:
     import pygraphviz as pgv
     G = pgv.AGraph(directed=True)
     G.node_attr['shape'] = 'box'
-    G.graph_attr['size'] = '2!,2!'
-    G.graph_attr['dpi'] = str(dpi)
+    # G.graph_attr['size'] = '2!,2!' # use for animations only
+    # G.graph_attr['dpi'] = str(dpi)
     
     parent = self.root
     G.add_node(str(parent))
