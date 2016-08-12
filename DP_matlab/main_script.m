@@ -73,8 +73,8 @@ for i = 1:365
 end
 
 %% run SDP optimization
-%policy.H = opt_sdp(tol, max_it) ;
-policy.H   = load('tempBellman.txt','-ascii') ;
+policy.H = opt_sdp(tol, max_it) ;
+%policy.H   = load('tempBellman.txt','-ascii') ;
 %% run simulation of SDP-policies (01/10/1995-30/09/2015)
 q_sim = sys_param.simulation.q ;
 s_init = sys_param.simulation.s_in ;
