@@ -42,22 +42,18 @@ function [vv, VV] = construct_rel_matrices(discr)
 discr_s = discr.discr_s;
 discr_q = discr.discr_q;
 
-% min release for each value of storage and inflow, assuming the release
-% decision is equal to 0
-vv = nan(length(discr_s), length(discr_q));
-for i = 1:length(discr_s)
-  for j = 1:length(discr_q)
-    [~, r1] = massBalance( discr_s(i), 0, discr_q(j) );
-    vv(i,j) = r1;
-  end
+vv = nan(length(discr_s), length(discr_q), 365);
+VV = nan(length(discr_s), length(discr_q));
+for t=1:365
+    disp(t);
+    for i = 1:length(discr_s)
+        for j = 1:length(discr_q)
+            [~, r1] = massBalance( discr_s(i), 0, discr_q(j), t);
+            vv(i,j,t) = r1;
+            [~, r2] = massBalance( discr_s(i), discr.discr_u(end), discr_q(j), t);
+            VV(i,j) = r2;
+        end
+    end
 end
 
-% min release for each value of storage and inflow, assuming the release
-% decision is equal to the maximum
-VV = nan(length(discr_s), length(discr_q));
-for i = 1: length(discr_s)
-  for j = 1: length(discr_q)
-    [~, r1] = massBalance( discr_s(i), discr.discr_u(end), discr_q(j) );
-    VV(i,j) = r1;
-  end
 end

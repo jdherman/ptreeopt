@@ -7,7 +7,7 @@ function V = max_release(s)
 %  release = cfs_to_taf(np.array([0, 35000, 40000, 115000, 115000])) # make the last one 130 for future runs
 
 xs = [0, 100, 400, 600, 1000] ;
-xr = [0, 35000, 40000, 115000, 115000] ;
+xr = cfs_to_taf([0, 35000, 40000, 115000, 115000]) ;
 
 V = interp_lin_scalar(xs, xr, s) ;
 

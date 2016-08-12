@@ -63,11 +63,12 @@ count  = 1;
 while diff_H >= tol
     H_old = H;
     for t = T:-1:1
+        disp(t);
         sys_param.simulation.wt = sys_param.simulation.w(t) ;
         sys_param.algorithm.stat_t = sys_param.algorithm.q_stat(t,:) ;
         H_ = H(:, mod(t,T) + 1); % (n_s, 1)
         for i = 1: n_s
-            sys_param.simulation.vv = min_rel( i, : );
+            sys_param.simulation.vv = min_rel( i, :, t );
             sys_param.simulation.VV = max_rel( i, : );
             H(i,t) = Bellman_sdp( H_, discr_s(i) );
         end

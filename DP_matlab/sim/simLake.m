@@ -1,9 +1,9 @@
-function [Jflo, Jirr, h, u, r, g_flo, g_irr] = simLake( q, h_in, policy )
+function [J, s, u, r, G] = simLake( q, s_in, policy )
 % SIMLAKE Simulation routine that return the final performance of flooding
 %         and irrigation, as well as the a number of time-series variables
 %         related to the lake dynamics. 
 %
-% [Jflo, Jirr, h, u, r, g_flo, g_irr] = SIMLAKE( q, h_in, policy )
+% [Jflo, Jirr, h, u, r, g_flo, g_irr] = SIMLAKE( q, s_in, policy )
 % 
 % Output:
 %       Jflo - final performance for flooding objective. ([cm])
@@ -16,7 +16,7 @@ function [Jflo, Jirr, h, u, r, g_flo, g_irr] = simLake( q, h_in, policy )
 % 
 % Input:
 %          q - inflow time series. ([m3/s])
-%       h_in - initial lake level. ([m])
+%       s_in - initial lake stprage. ([m])
 %     policy - structure variable containing the policy related parameters.
 %
 % See also LEVELTOSTORAGE, EXTRACTOR_REF, INTERP_LIN_SCALAR, HOURLY_INTEG,
@@ -48,18 +48,18 @@ global sys_param;
 % Simulation setting
 q_sim = [ nan; q ];
 H = length(q_sim) - 1;
+T = sys_param.algorithm.T ;
 
 % Initialization
 [h,s,r,u] = deal(nan(size(q_sim)));
 
 % Start simulation
-h(1) = h_in;
-s(1) = levelToStorage(h(1));
+s(1) = s_in;
 
 for t = 1: H
-  
+  disp(t);
   % Compute release decision
-  
+  doy = mod(t-1,T)+1 ;
   switch (sys_param.algorithm.name)
     
     case 'rand'      
@@ -112,21 +112,23 @@ for t = 1: H
       min_rel = sys_param.algorithm.min_rel;
       max_rel = sys_param.algorithm.max_rel;
       
-      w = sys_param.simulation.w;
+      wt = sys_param.simulation.w(doy) ;
+      sys_param.simulation.wt = wt; 
+      sys_param.algorithm.stat_t = sys_param.algorithm.q_stat(doy,:) ;
       
       % Minimum and maximum release for current storage and inflow:
       [ ~ , idx_q ] = min( abs( discr_q - q_sim(t+1) ) );
       
-      v =interp1qr( discr_s , min_rel( : , idx_q ) , s(t) );
+      v =interp1q( discr_s , min_rel( : , idx_q, doy ) , s(t) );
       sys_param.simulation.vv = repmat( v, 1, length(discr_q) );
       
-      V = interp1qr( discr_s , max_rel( : , idx_q ) , s(t) );
+      V = interp1q( discr_s , max_rel( : , idx_q ) , s(t) );
       sys_param.simulation.VV = repmat( V, 1, length(discr_q) );
-      [ ~, idx_u ] = Bellman_sdp( policy.H , s(t) );
+      [ ~, idx_u ] = Bellman_sdp( policy.H(:,doy) , s(t) );
 
       % Choose one decision value (idx_u can return multiple equivalent
       % decisions)
-      uu = extractor_ref( idx_u , discr_u , w );
+      uu = extractor_ref( idx_u , discr_u , wt );
       
     case 'emodps'
       policy_class = sys_param.algorithm.policy_class;
@@ -187,13 +189,15 @@ for t = 1: H
   u(t) = uu;
   
   % Hourly integration of mass-balance equation
-  [s(t+1), r(t+1)] = massBalance( s(t), u(t), q_sim(t+1) );
-  h(t+1) = storageToLevel(s(t+1));
+  [s(t+1), r(t+1)] = massBalance( s(t), u(t), q_sim(t+1), doy );
+  % h(t+1) = storageToLevel(s(t+1));
   
 end
 
 % Calculate objectives (daily average of immediate costs)
-[g_flo, g_irr] = immediate_costs(h(2:end), r(2:end));
+Ny = H/T ;
+D = repmat( sys_param.simulation.w, Ny, 1);
+G = (max( D - r(2:end), 0 )).^2 ;
+J = mean(G);
 
-Jflo = mean(g_flo);
-Jirr = mean(g_irr);
+end
