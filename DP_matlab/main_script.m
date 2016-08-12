@@ -57,7 +57,7 @@ sys_param.algorithm.max_rel = VV;
 % set algorithm parameters
 sys_param.algorithm.name = 'sdp';
 sys_param.algorithm.Hend = 0 ; % penalty set to 0
-sys_param.algorithm.T = 365 ;    % the period is equal 1 as we assume stationary conditions
+sys_param.algorithm.T = 365 ;    % the period is equal 1 year
 sys_param.algorithm.gamma = 1; % set future discount factor
 tol = -1;    % accuracy level for termination 
 max_it = 10; % maximum iteration for termination 
@@ -78,15 +78,31 @@ policy.H = opt_sdp(tol, max_it) ;
 %% run simulation of SDP-policies (01/10/1995-30/09/2015)
 q_sim = sys_param.simulation.q ;
 s_init = sys_param.simulation.s_in ;
+
 [J, s,u,r, G] = simLake( q_sim, s_init, policy );
 disp(J)
 
+%% analysis of results
+Ny = length(sys_param.simulation.q)/sys_param.algorithm.T ;
+D = repmat( sys_param.simulation.w, Ny, 1);
+
+% historical operations 
+s_hist = load('./data/storHist_011095_300915.txt','-ascii') ;
+r_hist = load('./data/relHist_011095_300915.txt','-ascii') ;
+G_hist = (max( D - r_hist, 0 )).^2 ;
+J_hist = mean( G_hist )
+
 figure; 
-subplot(211); plot(s, 'LineWidth',2); 
-axis([1 7300 0 1000]); ylabel('storage (TAF)');
-subplot(212); plot(r, 'LineWidth',2); 
-hold on; plot(repmat( sys_param.simulation.w, Ny, 1), 'r:',  'LineWidth',2);
-axis([1 7300 0 200]); ylabel('release (TAF/day)'); legend('release','demand');
+subplot(211); plot(s, 'r', 'LineWidth',2); 
+hold on; plot(s_hist, 'k', 'LineWidth',2); 
+legend('simulated', 'observed');
+axis([1 7300 0 1000]); ylabel('storage (TAF)'); 
+subplot(212); plot(r, 'r', 'LineWidth',2); 
+hold on; plot(r_hist, 'k',  'LineWidth',2);
+hold on; plot(D, 'g:',  'LineWidth',2);
+legend('simulated','observed','demand');
+axis([1 7300 0 200]); ylabel('release (TAF/day)'); 
+
 
 %% save results (storage, rel. decision, release, deficit^2)
 X = [s u r [nan;G]] ; %
