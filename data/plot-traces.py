@@ -28,8 +28,19 @@ init_plotting(5,4)
 inflows = pd.read_csv('folsom-cc-inflows.csv', index_col=0, parse_dates=True)
 
 # wet, dry, middle
-names = ['canesm2_rcp85_r1i1p1', 'miroc-esm_rcp85_r1i1p1', 'gfdl-esm2g_rcp85_r1i1p1']
-inflows[names].plot()
+# names = ['canesm2_rcp85_r1i1p1', 'miroc-esm_rcp85_r1i1p1', 'bcc-csm1-1-m_rcp45_r1i1p1']
+inflows[inflows < 220] = 220
+# (inflows-220).rolling(10).sum().plot()
+print (inflows - 220).rolling(10).sum().max()
+
+# finding cumulative inflow-outflow is important: some of these flood scenarios are unmanageable.
+# is 10-day rolling enough? Note the 220 release is optimistic. At lower storage values, the max release is lower. 
+
+
+
+# inflows[names].plot()
+
+
 # for r,c in zip(rcps, rcpcolors):
 #   x = annQs['2099'].filter(regex=r).values[0]
 #   y = lp3s['2099'].filter(regex=r).values[0]

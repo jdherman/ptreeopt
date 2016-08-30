@@ -46,6 +46,9 @@ for i,name in enumerate(names):
   y = lp3s['2099'][name].values[0]
   plt.annotate(name.split('_',1)[0], (x+40,y+3))
 
+
+plt.title('2100 Runoff Statistics')
+
 cX,cY = (2700,225)
 plt.scatter(cX,cY,s=70,c='k')
 plt.annotate('Current', (cX+70,cY-4), family='OfficinaSanITCMedium')

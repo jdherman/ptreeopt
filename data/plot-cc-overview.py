@@ -205,5 +205,5 @@ plt.annotate('RCP8.5', xy=('2021',122), family='OfficinaSanITCMedium', color=rcp
 
 ###############################
 plt.tight_layout()
-# plt.show()
-plt.savefig('combined.svg')
+plt.show()
+# plt.savefig('combined.svg')

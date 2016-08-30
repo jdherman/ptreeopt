@@ -99,14 +99,17 @@ class PTree:
   def evaluate(self, states):
 
     node = self.root
+    rules = []
 
-    while node.is_feature:  
+    while node.is_feature:
       if states[node.index] < node.threshold:
+        rules.append((node.name, node.threshold, True))  
         node = node.l
       else:
+        rules.append((node.name, node.threshold, False))  
         node = node.r
 
-    return node.value
+    return (node.value, rules)
 
 
   def get_subtree(self, begin):

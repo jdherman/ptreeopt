@@ -22,9 +22,10 @@ def init_plotting(w,h):
 init_plotting(7,4)
 
 path = 'hist-opt'
-DDP = 0.04 # placeholder value for now
+DDP = 0.06 # placeholder value for now
 HIST = 0.2869 / DDP # (TAF/d)^2, normalized by ddp value
-SDP = 0.2677 / DDP
+SDP = 0.22 / DDP
+# Values from Matteo on 8/30/16 email
 
 
 ##############################
@@ -35,10 +36,11 @@ seeds = 50
 
 for s in range(seeds):
   data = pickle.load(open(path + '/snapshots-depth-' + str(depth) + '-seed-' + str(s) + '.pkl', 'rb'))
-
+  print s
   nfe = data['nfe']
   best_f = np.array(data['best_f'])
-  # print data['best_P'][-1] # to see tree logic
+  print best_f[-1]
+  print data['best_P'][-1] # to see tree logic
   plt.loglog(nfe, best_f / DDP, linewidth=0.5, color='steelblue')
 
 plt.xlabel('NFE')
@@ -48,7 +50,7 @@ plt.title('(a) Convergence \n Max Depth = ' + str(depth), y=0.8, x=0.7, family='
 
 # annotations and lines
 plt.axhline(HIST, linewidth=2, color='k')
-plt.annotate('Historical', (3500, HIST+0.75), family='OfficinaSanITCBooIta')
+plt.annotate('Observed', (3500, HIST+0.75), family='OfficinaSanITCBooIta')
 plt.axhline(SDP, linewidth=2, color='k')
 plt.annotate('SDP', (60, SDP-1.5), family='OfficinaSanITCBooIta')
 plt.axhline(1.0, linewidth=3, color='r')
@@ -66,7 +68,7 @@ data_to_plot = []
 # Jv = np.loadtxt('historical-validation/results.csv', delimiter=',')
 d = []
 
-for depth in range(1,9):
+for depth in range(1,6):
   Jend = np.zeros(50)
 
   for s in range(seeds):
@@ -88,16 +90,16 @@ sns.boxplot(data=df, x='depth', y='J', width=0.5,
             saturation=0.5, color='steelblue') #hue='type' for validation
 plt.gca().set_xticklabels(range(1,9))
 plt.xlabel('Max Tree Depth')
-plt.ylabel('J / J$^*$')
+plt.ylabel('J / J$^*$ after 20000 NFE')
 plt.yscale('log')
 
 # annotations and lines
 plt.axhline(HIST, linewidth=2, color='k')
-plt.annotate('Historical', (0, HIST+0.75), family='OfficinaSanITCBooIta')
+plt.annotate('Observed', (0, HIST+0.75), family='OfficinaSanITCBooIta')
 plt.axhline(SDP, linewidth=2, color='k')
-plt.annotate('SDP', (0, SDP-1.5), family='OfficinaSanITCBooIta')
+plt.annotate('SDP', (0, SDP-1), family='OfficinaSanITCBooIta')
 plt.axhline(1.0, linewidth=3, color='r')
-plt.annotate('DDP = 1.0', (0, 1.07), color='r', family='OfficinaSanITCBooIta')
+plt.annotate('DDP = 1.0', (-0.4, 0.8), color='r', family='OfficinaSanITCBooIta')
 
 plt.gca().yaxis.set_major_formatter(ScalarFormatter())
 
