@@ -54,6 +54,7 @@ class PTreeOpt():
     # first: mutate the parents, only keep child if it's better
     for i in range(self.mu):
       child = self.mutate(self.population[i], mutate_actions = False)
+      child.prune()
       obj = self.f(child)
       if obj < self.objectives[i]:
         self.population[i] = child

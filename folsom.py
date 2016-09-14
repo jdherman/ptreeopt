@@ -29,8 +29,9 @@ def tocs(d):
 
 class Folsom():
 
-  def __init__(self, datafile, sd, ed, 
-               cc = False, fit_historical = False, scenario = None):
+  def __init__(self, datafile, sd, ed,
+               fit_historical = False, use_tocs = False, 
+               cc = False, scenario = None):
 
     self.df = pd.read_csv(datafile, index_col=0, parse_dates=True)[sd:ed]
     self.K = 975 # capacity, TAF
@@ -38,22 +39,23 @@ class Folsom():
     self.D = np.loadtxt('demand.txt')[self.dowy]
     self.T = len(self.df.index)
     self.fit_historical = fit_historical
+    self.use_tocs = use_tocs
     self.cc = cc
 
-    if not self.cc:
-      self.Q = self.df.inflow.values
-    else:
-      if scenario:
-        self.Q = self.df[scenario].values
-        self.annQ = pd.read_csv('data/folsom-cc-annQ-MA50.csv', index_col=0, parse_dates=True)[scenario].values
-        self.lp3 = pd.read_csv('data/folsom-cc-lp3-kcfs.csv', index_col=0, parse_dates=True)[scenario].values
-        # self.wycent = pd.read_csv('data/folsom-cc-wycentroid.csv', index_col=0, parse_dates=True)[scenario].values
-      else:
-        raise NotImplementedError('Must specify a scenario, for now')
 
+    if self.cc:
+      self.annQs = pd.read_csv('data/folsom-cc-annQ-MA30.csv', index_col=0, parse_dates=True)
       self.years = self.df.index.year
+      if scenario:
+        self.set_scenario(scenario)
+    else:
+      self.Q = self.df.inflow.values
 
-      # scenarios = [s for s in self.df.columns if 'canesm2_rcp85_r1i1p1' in s] # Only running rcp8.5 right now
+
+  def set_scenario(self, s):
+    self.scenario = s
+    self.annQ = self.annQs[s].values
+    self.Q = self.df[s].values
 
 
   def f(self, P, mode='optimization'):
@@ -76,10 +78,10 @@ class Folsom():
     for t in range(1,T):
 
       if not self.cc:
-        policy,rules = P.evaluate([S[t-1], self.dowy[t]])
+        policy,rules = P.evaluate([S[t-1], self.dowy[t], Q[t]])
       else:
         y = self.years[t]-2000
-        policy,rules = P.evaluate([S[t-1], self.dowy[t], self.annQ[y], self.lp3[y]])
+        policy,rules = P.evaluate([S[t-1], self.dowy[t], Q[t], self.annQ[y]])#, self.lp3[y]])
       
       if policy == 'Release_Demand':
         target[t] = D[t]
@@ -93,27 +95,15 @@ class Folsom():
         target[t] = 0.6*D[t]
       elif policy == 'Hedge_50':
         target[t] = 0.5*D[t]
+
+      if self.use_tocs:
+        target[t] = max(0.2*(Q[t] + S[t-1] - tocs(dowy[t])), target[t])
       elif policy == 'Flood_Control':
-        # if self.fit_historical:
-        #   target[t] = max(0.2*(Q[t] + S[t-1] - 400), 0.0)
-        # else:
-        #   # target[t] = max(0.2*(Q[t] + S[t-1] - 0), 0.0)
-        #   # target[t] = max_release(S[t-1])
-
-        # let's try this. if storage level is in the tree, and >, use the last occurrence
-
-        target[t] = max(0.2*(Q[t] + S[t-1] - 400), 0.0) # default
-
-        for item in rules:
-          if item[0] == 'Storage' and not item[2]:
-            target[t] = max(0.2*(Q[t] + S[t-1] - item[1]), 0.0)
-
-
-      # old way ...
-      # if flood_pool:
-      #   target[t] = max(0.2*(Q[t] + S[t-1] - tocs(dowy[t])), target[t])
-      # elif policy == 'Flood_Control':
-      #   target[t] = max_release(S[t-1]) # max(S[t-1] + Q[t] - K, 0)
+        # target[t] = max_release(S[t-1])        
+        target[t] = max(0.2*(Q[t] + S[t-1] - 0.0), 0.0) # default
+        # for item in rules:
+        #   if item[0] == 'Storage' and not item[2]:
+        #     target[t] = max(0.2*(Q[t] + S[t-1] - item[1]), 0.0)
 
       if mode == 'simulation':
         policies.append(policy)
