@@ -45,6 +45,8 @@ class Folsom():
 
     if self.cc:
       self.annQs = pd.read_csv('data/folsom-cc-annQ-MA30.csv', index_col=0, parse_dates=True)
+      self.lp3s = pd.read_csv('data/folsom-cc-lp3-kcfs.csv', index_col=0, parse_dates=True)
+      self.wycs = pd.read_csv('data/folsom-cc-wycentroid.csv', index_col=0, parse_dates=True)
       self.years = self.df.index.year
       if scenario:
         self.set_scenario(scenario)
@@ -55,6 +57,8 @@ class Folsom():
   def set_scenario(self, s):
     self.scenario = s
     self.annQ = self.annQs[s].values
+    self.lp3 = self.lp3s[s].values
+    self.wyc = self.wycs[s].values
     self.Q = self.df[s].values
 
 
@@ -81,7 +85,8 @@ class Folsom():
         policy,rules = P.evaluate([S[t-1], self.dowy[t], Q[t]])
       else:
         y = self.years[t]-2000
-        policy,rules = P.evaluate([S[t-1], self.dowy[t], Q[t], self.annQ[y]])#, self.lp3[y]])
+        policy,rules = P.evaluate([S[t-1], Q[t], dowy[t], 
+                                  self.annQ[y], self.lp3[y], self.wyc[y]])
       
       if policy == 'Release_Demand':
         target[t] = D[t]

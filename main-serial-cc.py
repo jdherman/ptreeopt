@@ -8,6 +8,7 @@ import pandas as pd
 np.random.seed(1)
 
 scenarios = pd.read_csv('data/folsom-cc-inflows.csv', index_col=0).columns
+
 # s = scenarios[0]
 # s = 'canesm2_rcp85_r1i1p1' # un-adaptable big floods
 # s = 'ccsm4_rcp60_r1i1p1'
