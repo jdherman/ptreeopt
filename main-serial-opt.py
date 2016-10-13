@@ -1,13 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
-from opt import *
 from folsom import Folsom
+from ptreeopt import PTreeOpt
 import pandas as pd
 
 np.random.seed(13)
 
-model = Folsom('folsom-daily.csv', sd='1995-10-01', ed='2015-09-30', use_tocs = False)
+model = Folsom('folsom/data/folsom-daily.csv', sd='1995-10-01', ed='2015-09-30', use_tocs = False)
 
 algorithm = PTreeOpt(model.f, 
                     feature_bounds = [[0,1000], [1,365], [0,300]],

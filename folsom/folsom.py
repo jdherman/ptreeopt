@@ -36,7 +36,7 @@ class Folsom():
     self.df = pd.read_csv(datafile, index_col=0, parse_dates=True)[sd:ed]
     self.K = 975 # capacity, TAF
     self.dowy = np.array([water_day(d) for d in self.df.index.dayofyear])
-    self.D = np.loadtxt('demand.txt')[self.dowy]
+    self.D = np.loadtxt('folsom/data/demand.txt')[self.dowy]
     self.T = len(self.df.index)
     self.fit_historical = fit_historical
     self.use_tocs = use_tocs
