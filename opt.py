@@ -71,8 +71,8 @@ class PTreeOpt():
         while child.get_depth() > self.max_depth:
           child = self.crossover(P1,P2)[0]
 
-      else: # replace with random new tree
-        child = self.random_tree()
+      else: # replace with randomly chosen population member
+        child = np.random.choice(self.population[self.mu:], 1)[0]
 
       child = self.mutate(child)
       child.prune()
