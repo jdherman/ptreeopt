@@ -8,7 +8,8 @@ class PTreeOpt():
 
   def __init__(self, f, feature_bounds, discrete_actions = False, action_bounds = None, 
                action_names = None, population_size = 100, mu = 15, max_depth = 4, 
-               mut_prob = 0.9, cx_prob = 0.9, feature_names = None, multiobj = False):
+               mut_prob = 0.9, cx_prob = 0.9, feature_names = None, 
+               multiobj = False, epsilons = None):
 
     self.f = f
     self.num_features = len(feature_bounds)
@@ -23,6 +24,7 @@ class PTreeOpt():
     self.cx_prob = cx_prob
     self.feature_names = feature_names
     self.multiobj = multiobj
+    self.epsilons = epsilons
 
     if feature_names is not None and len(feature_names) != len(feature_bounds):
       raise ValueError('feature_names and feature_bounds must be the same length.')
@@ -115,7 +117,12 @@ class PTreeOpt():
 
       if log_frequency is not None and nfe >= last_log + log_frequency:
         elapsed = datetime.timedelta(seconds=time.time()-start_time).seconds
-        print('%d\t%s\t%0.3f\t%s' % (nfe, elapsed, self.best_f, self.best_P))        
+
+        if not self.multiobj:
+          print('%d\t%s\t%0.3f\t%s' % (nfe, elapsed, self.best_f, self.best_P))
+        else:
+          print('# nfe = %d\n%s' % (nfe, self.best_f)) 
+          print(self.best_f.shape)       
         snapshots['nfe'].append(nfe)
         snapshots['time'].append(elapsed)
         snapshots['best_f'].append(self.best_f)
@@ -196,37 +203,43 @@ class PTreeOpt():
     return lb + x_trial*(ub-lb)
 
 
-  def dominates(a,b):
+  def dominates(self, a, b):
     # assumes minimization
     # a dominates b if it is <= in all objectives and < in at least one
     return (np.all(a <= b) and np.any(a < b))
 
 
-  def binary_tournament(P,f):
+  def same_box(self, a, b):
+    if self.epsilons:
+      a = a/self.epsilons
+      b = b/self.epsilons
+    return np.all(a == b)
+
+  def binary_tournament(self, P, f):
     # select 1 parent from population P
     # (Luke Algorithm 99 p.138)
     i = np.random.randint(0,P.shape[0],2)
     a,b = f[i[0]], f[i[1]]
-    if dominates(a,b):
+    if self.dominates(a,b):
       return i[0]
-    elif dominates(b,a):
+    elif self.dominates(b,a):
       return i[1]
     else:
       return i[0] if np.random.rand() < 0.5 else i[1]
 
 
   # assumes minimization
-  def archive_sort(A, fA, P, fP):
+  def archive_sort(self, A, fA, P, fP):
 
     for i,x in enumerate(P):
       
-      dominated = False
-      added = False
+      dominated,added,same_box = False,False,False
+
       for j,xA in enumerate(A):
 
         # if population member dominates archive member, replace
         if self.dominates(fP[i,:], fA[j,:]):
-          A[j,:] = P[i,:]
+          A[j] = P[i]
           fA[j,:] = fP[i,:]
           added = True
           break
@@ -236,9 +249,12 @@ class PTreeOpt():
           dominated = True
           break
 
-      if not dominated and not added:
-        A = np.vstack((A,x))
-        fA = np.vstack((fA,fP[i,:]))
+        elif self.same_box(fP[i,:], fA[j,:]):
+          same_box = True
+
+      if not dominated and not added and not same_box:
+        A = np.append(A, x)
+        fA = np.vstack((fA, fP[i,:]))
 
     return (A,fA)
 

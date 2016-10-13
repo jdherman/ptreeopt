@@ -164,8 +164,8 @@ class Folsom():
           # (3) environmental alteration:
           # integrate between inflow/outflow exceedance curves
           ixi = np.argsort(Q)
-          ixo = np.argsort(Rs)
-          J3 = np.trapz(np.abs(Q[ixi]-Rs[ixo]), dx=1.0/T)
+          ixo = np.argsort(R)
+          J3 = np.trapz(np.abs(Q[ixi]-R[ixo]), dx=1.0/T)
           # (4) Maximize hydropower generation (GWh)
           # Max turbine release 8600 cfs, 215 MW. Average annual production 620 GWh.
           # http://www.usbr.gov/mp/EWA/docs/DraftEIS-Vol2/Ch16.pdf
