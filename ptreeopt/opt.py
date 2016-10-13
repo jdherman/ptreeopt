@@ -7,8 +7,8 @@ from tree import *
 class PTreeOpt():
 
   def __init__(self, f, feature_bounds, discrete_actions = False, action_bounds = None, 
-               action_names = None, population_size = 100, mu = 15, 
-               max_depth = 4, mut_prob = 0.9, cx_prob = 0.9, feature_names = None):
+               action_names = None, population_size = 100, mu = 15, max_depth = 4, 
+               mut_prob = 0.9, cx_prob = 0.9, feature_names = None, multiobj = False):
 
     self.f = f
     self.num_features = len(feature_bounds)
@@ -22,6 +22,7 @@ class PTreeOpt():
     self.mut_prob = mut_prob
     self.cx_prob = cx_prob
     self.feature_names = feature_names
+    self.multiobj = multiobj
 
     if feature_names is not None and len(feature_names) != len(feature_bounds):
       raise ValueError('feature_names and feature_bounds must be the same length.')
@@ -43,28 +44,42 @@ class PTreeOpt():
 
   def iterate(self):
 
-    ix = np.argsort(self.objectives)
-    self.population = self.population[ix] 
-    self.objectives = self.objectives[ix]
+    # selection: find index numbers for parents
+    if not self.multiobj:
+      parents = self.select_truncation(self.objectives)
 
-    if self.best_f is None or self.objectives[0] < self.best_f:
-      self.best_f = self.objectives[0]
-      self.best_P = self.population[0]
+      if self.best_f is None or self.objectives[parents[0]] < self.best_f:
+        self.best_f = self.objectives[parents[0]]
+        self.best_P = self.population[parents[0]]
+    else:
+      parents = [self.binary_tournament(self.population, self.objectives)
+                 for _ in range(self.mu)]
+
+      if self.best_f is None:
+        self.best_f = self.objectives[parents]
+        self.best_P = self.population[parents]
+      else:
+          self.best_P,self.best_f = self.archive_sort(self.best_P, self.best_f, 
+                                                      self.population, self.objectives)
+
 
     # first: mutate the parents, only keep child if it's better
-    for i in range(self.mu):
+    children = set(range(self.popsize)) - set(parents)
+
+    for i in parents:
       child = self.mutate(self.population[i])
       child.prune()
       obj = self.f(child)
-      if obj < self.objectives[i]:
+      if (not self.multiobj and obj < self.objectives[i]) or \
+         (self.multiobj and self.dominates(obj, self.objectives[i])):
         self.population[i] = child
         self.objectives[i] = obj
 
     # then crossover to develop the rest of the population
-    for i in range(self.mu, self.popsize):
+    for i in children:
       
       if np.random.rand() < self.cx_prob:
-        P1,P2 = np.random.choice(self.population[:self.mu], 2, replace=False)
+        P1,P2 = np.random.choice(self.population[parents], 2, replace=False)
         child = self.crossover(P1,P2)[0]
 
         # bloat control
@@ -72,7 +87,7 @@ class PTreeOpt():
           child = self.crossover(P1,P2)[0]
 
       else: # replace with randomly chosen population member
-        child = np.random.choice(self.population[self.mu:], 1)[0]
+        child = np.random.choice(self.population, 1)[0]
 
       child = self.mutate(child)
       child.prune()
@@ -137,6 +152,10 @@ class PTreeOpt():
     return T
 
 
+  def select_truncation(self, obj):
+    return np.argsort(obj)[:self.mu]
+
+
   def crossover(self, P1, P2):
     P1,P2 = [copy.deepcopy(P) for P in (P1,P2)]
     # should use indices of ONLY feature nodes
@@ -176,4 +195,50 @@ class PTreeOpt():
         
     return lb + x_trial*(ub-lb)
 
+
+  def dominates(a,b):
+    # assumes minimization
+    # a dominates b if it is <= in all objectives and < in at least one
+    return (np.all(a <= b) and np.any(a < b))
+
+
+  def binary_tournament(P,f):
+    # select 1 parent from population P
+    # (Luke Algorithm 99 p.138)
+    i = np.random.randint(0,P.shape[0],2)
+    a,b = f[i[0]], f[i[1]]
+    if dominates(a,b):
+      return i[0]
+    elif dominates(b,a):
+      return i[1]
+    else:
+      return i[0] if np.random.rand() < 0.5 else i[1]
+
+
+  # assumes minimization
+  def archive_sort(A, fA, P, fP):
+
+    for i,x in enumerate(P):
+      
+      dominated = False
+      added = False
+      for j,xA in enumerate(A):
+
+        # if population member dominates archive member, replace
+        if self.dominates(fP[i,:], fA[j,:]):
+          A[j,:] = P[i,:]
+          fA[j,:] = fP[i,:]
+          added = True
+          break
+
+        # if it's dominated, ignore
+        elif self.dominates(fA[j,:], fP[i,:]):
+          dominated = True
+          break
+
+      if not dominated and not added:
+        A = np.vstack((A,x))
+        fA = np.vstack((fA,fP[i,:]))
+
+    return (A,fA)
 
