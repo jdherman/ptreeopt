@@ -173,11 +173,6 @@ class PTreeOpt():
     lb,ub = bounds
     xnorm = (x-lb)/(ub-lb)
     x_trial = np.clip(xnorm + np.random.normal(0, scale=0.1), 0, 1)
-
-    # if x_trial > 1:
-    #   x_trial = 1.0
-    # elif x_trial < 0:
-    #   x_trial = 0.0
         
     return lb + x_trial*(ub-lb)
 
