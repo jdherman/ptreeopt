@@ -26,21 +26,31 @@ def tocs(d):
   sp = [975, 400, 400, 750, 975, 975]
   return np.interp(d, tp, sp)
 
+def volume_to_height(S): # from HOBBES data
+  sp = [0, 48, 93, 142, 192, 240, 288, 386, 678, 977]
+  ep = [210, 305, 332, 351, 365, 376, 385, 401, 437, 466]
+  return np.interp(S, sp, ep)
+
 
 class Folsom():
 
   def __init__(self, datafile, sd, ed,
                fit_historical = False, use_tocs = False, 
-               cc = False, scenario = None):
+               cc = False, scenario = None, multiobj = False):
 
     self.df = pd.read_csv(datafile, index_col=0, parse_dates=True)[sd:ed]
     self.K = 975 # capacity, TAF
+    self.turbine_elev = 134 # feet
+    self.turbine_max_release = 8600 # cfs
+    self.max_safe_release = 130000 # cfs
+
     self.dowy = np.array([water_day(d) for d in self.df.index.dayofyear])
     self.D = np.loadtxt('folsom/data/demand.txt')[self.dowy]
     self.T = len(self.df.index)
     self.fit_historical = fit_historical
     self.use_tocs = use_tocs
     self.cc = cc
+    self.multiobj = multiobj
 
 
     if self.cc:
@@ -65,9 +75,8 @@ class Folsom():
   def f(self, P, mode='optimization'):
 
     T = self.T
-    S,R,target = [np.zeros(T) for _ in range(3)]
-    cost = 0
-    K = 975
+    S,R,target,shortage_cost,flood_cost = [np.zeros(T) for _ in range(5)]
+    K = self.K
     D = self.D
     Q = self.Q
     dowy = self.dowy
@@ -123,23 +132,45 @@ class Folsom():
 
       # squared deficit. Also penalize any total release over 100 TAF/day  
       # should be able to vectorize this.  
-      cost += max(D[t] - R[t], 0)**2/T #+ max(R[t]-100, 0)**2
+      shortage_cost[t] = max(D[t] - R[t], 0)**2/T #+ max(R[t]-100, 0)**2
 
-      if R[t] > cfs_to_taf(130000):
-        cost += 10**3 * (R[t] - cfs_to_taf(130000)) # flood penalty, high enough to be a constraint
+      if R[t] > cfs_to_taf(self.max_safe_release):
+        flood_cost[t] += 10**3 * (R[t] - cfs_to_taf(self.max_safe_release)) # flood penalty, high enough to be a constraint
 
 
-    if mode == 'simulation':
+    if mode == 'simulation' or self.multiobj:
       df = self.df.copy()
       df['Ss'] = pd.Series(S, index=df.index)
       df['Rs'] = pd.Series(R, index=df.index)
       df['demand'] = pd.Series(D, index=df.index)
       df['target'] = pd.Series(target, index=df.index)
       df['policy'] = pd.Series(policies, index=df.index, dtype='category')
-      return df
+      head = (volume_to_height(df.Ss) - self.turbine_elev)
+      power_release = taf_to_cfs(df.Rs.copy()).clip(0, self.turbine_max_release)
+      df['power'] = (24*0.85*10**-4/1.181)*(head*power_release)
+
+
+    if mode == 'simulation':
+      return df    
     else:
       if self.fit_historical:
-        # return (1-np.corrcoef(S, self.df.storage.values)[0,1]**2)
         return np.sqrt(np.mean((S - self.df.storage.values)**2))
       else:
-        return cost
+        if not self.multiobj:
+          return shortage_cost.sum() + flood_cost.sum()
+        else:
+          J1 = shortage_cost.sum() # water supply
+          J2 = taf_to_cfs(df.Rs.max()) # peak flood
+          # (3) environmental alteration:
+          # integrate between inflow/outflow exceedance curves
+          ixi = np.argsort(Q)
+          ixo = np.argsort(Rs)
+          J3 = np.trapz(np.abs(Q[ixi]-Rs[ixo]), dx=1.0/T)
+          # (4) Maximize hydropower generation (GWh)
+          # Max turbine release 8600 cfs, 215 MW. Average annual production 620 GWh.
+          # http://www.usbr.gov/mp/EWA/docs/DraftEIS-Vol2/Ch16.pdf
+          # http://rivers.bee.oregonstate.edu/book/export/html/6
+          J4 = -df.power.resample('AS-OCT').sum().mean() / 1000 
+          return [J1,J2,J3,J4]
+
+
