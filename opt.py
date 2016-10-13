@@ -54,6 +54,7 @@ class PTreeOpt():
     # first: mutate the parents, only keep child if it's better
     for i in range(self.mu):
       child = self.mutate(self.population[i], mutate_actions = False)
+      child.prune()
       obj = self.f(child)
       if obj < self.objectives[i]:
         self.population[i] = child
@@ -91,7 +92,7 @@ class PTreeOpt():
     
     if log_frequency:
       snapshots = {'nfe': [], 'time': [], 'best_f': [], 'best_P': []}
-      print 'NFE\telapsed_time\tbest_f'
+      # print('NFE\telapsed_time\tbest_f')
 
     while nfe < max_nfe:
       self.iterate()
@@ -99,7 +100,7 @@ class PTreeOpt():
 
       if log_frequency is not None and nfe >= last_log + log_frequency:
         elapsed = datetime.timedelta(seconds=time.time()-start_time).seconds
-        print '%d\t%s\t%0.3f\t%s' % (nfe, elapsed, self.best_f, self.best_P)        
+        print('%d\t%s\t%0.3f\t%s' % (nfe, elapsed, self.best_f, self.best_P))        
         snapshots['nfe'].append(nfe)
         snapshots['time'].append(elapsed)
         snapshots['best_f'].append(self.best_f)
@@ -111,7 +112,7 @@ class PTreeOpt():
   
 
   def random_tree(self, terminal_ratio = 0.5):
-    depth = np.random.randint(2, self.max_depth+1)
+    depth = np.random.randint(1, self.max_depth+1)
     L = []
     S = [0]
 
@@ -137,7 +138,7 @@ class PTreeOpt():
 
 
   def crossover(self, P1, P2):
-    P1,P2 = [copy.deepcopy(P) for P in P1,P2]
+    P1,P2 = [copy.deepcopy(P) for P in (P1,P2)]
     # should use indices of ONLY feature nodes
     feature_ix1 = [i for i in range(P1.N) if P1.L[i].is_feature]
     feature_ix2 = [i for i in range(P2.N) if P2.L[i].is_feature]
