@@ -55,8 +55,10 @@ colors = {'Release_Demand': 'cornsilk',
           'Flood_Control': 'lightsteelblue'}
 
 
-df.storage.plot(color='0.6', linewidth=2)
-df.Ss.plot(color='k', linewidth=2, zorder=10)
+# df.storage.plot(color='0.6', linewidth=2)
+# df.Ss.plot(color='k', linewidth=2, zorder=10)
+df.outflow.plot(color='0.6', linewidth=2)
+df.Rs.plot(color='k', linewidth=2, zorder=10)
 
 # print np.corrcoef(df.storage.values, df.Ss.values)
 
@@ -89,8 +91,8 @@ plt.ylim([0,1000])
 # plt.scatter(df.outflow.values, df.outflow.shift(-1).values)
 # plt.scatter(df.Rs.values, df.Rs.shift(-1).values, color='r')
 plt.tight_layout()
-# plt.show()
-plt.savefig('hist-opt-ts-flood.svg')
+plt.show()
+# plt.savefig('hist-opt-ts-flood.svg')
 
 # plt.savefig('figs/best-historical-ts-policy.svg')
 

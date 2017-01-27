@@ -229,6 +229,7 @@ class PTreeOpt():
 
 
   # assumes minimization
+  # need to fix this from 289 notes
   def archive_sort(self, A, fA, P, fP):
 
     for i,x in enumerate(P):

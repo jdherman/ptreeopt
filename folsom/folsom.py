@@ -54,9 +54,9 @@ class Folsom():
 
 
     if self.cc:
-      self.annQs = pd.read_csv('data/folsom-cc-annQ-MA30.csv', index_col=0, parse_dates=True)
-      self.lp3s = pd.read_csv('data/folsom-cc-lp3-kcfs.csv', index_col=0, parse_dates=True)
-      self.wycs = pd.read_csv('data/folsom-cc-wycentroid.csv', index_col=0, parse_dates=True)
+      self.annQs = pd.read_csv('folsom/data/folsom-cc-annQ-MA30.csv', index_col=0, parse_dates=True)
+      self.lp3s = pd.read_csv('folsom/data/folsom-cc-lp3-kcfs.csv', index_col=0, parse_dates=True)
+      self.wycs = pd.read_csv('folsom/data/folsom-cc-wycentroid.csv', index_col=0, parse_dates=True)
       self.years = self.df.index.year
       if scenario:
         self.set_scenario(scenario)
@@ -144,13 +144,13 @@ class Folsom():
       df['Rs'] = pd.Series(R, index=df.index)
       df['demand'] = pd.Series(D, index=df.index)
       df['target'] = pd.Series(target, index=df.index)
-      df['policy'] = pd.Series(policies, index=df.index, dtype='category')
       head = (volume_to_height(df.Ss) - self.turbine_elev)
       power_release = taf_to_cfs(df.Rs.copy()).clip(0, self.turbine_max_release)
       df['power'] = (24*0.85*10**-4/1.181)*(head*power_release)
 
 
     if mode == 'simulation':
+      df['policy'] = pd.Series(policies, index=df.index, dtype='category')
       return df    
     else:
       if self.fit_historical:

@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
-from opt import *
 from folsom import Folsom
+from ptreeopt import PTreeOpt
 import pandas as pd
 np.random.seed(1)
 
@@ -29,7 +29,7 @@ scenarios = ['access1-0_rcp45_r1i1p1', 'access1-0_rcp85_r1i1p1',
 'noresm1-m_rcp85_r1i1p1']
 
 
-model = Folsom('data/folsom-cc-inflows.csv', sd='2050-10-01', ed='2099-09-30',
+model = Folsom('folsom/data/folsom-cc-inflows.csv', sd='2050-10-01', ed='2099-09-30',
                cc = True, use_tocs=False)
 
 def wrapper(P):
