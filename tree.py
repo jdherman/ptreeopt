@@ -17,7 +17,7 @@ class Feature(Node):
     super(Feature, self).__init__()
 
   def __str__(self):
-    return '%s < %0.3f' % (self.name, self.threshold)
+    return '%s < %d' % (self.name, self.threshold)
 
 
 class Action(Node):
@@ -99,14 +99,17 @@ class PTree:
   def evaluate(self, states):
 
     node = self.root
+    rules = []
 
-    while node.is_feature:  
+    while node.is_feature:
       if states[node.index] < node.threshold:
+        rules.append((node.name, node.threshold, True))  
         node = node.l
       else:
+        rules.append((node.name, node.threshold, False))  
         node = node.r
 
-    return node.value
+    return (node.value, rules)
 
 
   def get_subtree(self, begin):
@@ -217,8 +220,8 @@ class PTree:
     import pygraphviz as pgv
     G = pgv.AGraph(directed=True)
     G.node_attr['shape'] = 'box'
-    G.graph_attr['size'] = '2!,2!'
-    G.graph_attr['dpi'] = str(dpi)
+    # G.graph_attr['size'] = '2!,2!' # use for animations only
+    # G.graph_attr['dpi'] = str(dpi)
     
     parent = self.root
     G.add_node(str(parent))
