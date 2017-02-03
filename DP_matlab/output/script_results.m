@@ -63,6 +63,7 @@ save -ascii resultSDP.txt X
 %% comparison
 load -ascii resultDDP.txt 
 load -ascii resultSDP.txt 
+load -ascii demand_sim.txt
 
 figure; plot(s_hist, 'Color', [.5 .5 .5], 'LineWidth',2); 
 hold on; plot( resultDDP(:,1), 'r', 'LineWidth',2); 
@@ -70,4 +71,7 @@ hold on; plot( resultSDP(:,1), 'k', 'LineWidth',2);
 axis([1 length(s_hist) 0 1000]); ylabel('storage (TAF)'); 
 legend('observed', 'DDP', 'SDP'); grid on;
 
-
+G_hist = (max( demand_sim - r_hist, 0 )).^2 ;
+J_hist = mean( G_hist )
+J_ddp = mean( resultDDP(:,end) )
+J_sdp = mean( resultSDP(:,end) )
