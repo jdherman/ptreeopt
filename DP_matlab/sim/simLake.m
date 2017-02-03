@@ -90,19 +90,20 @@ for t = 1: H
       min_rel = sys_param.algorithm.min_rel;
       max_rel = sys_param.algorithm.max_rel;
       
-      w = sys_param.simulation.w;
+      wt = sys_param.simulation.w(doy);
+      sys_param.simulation.wt = wt; 
      
       [ ~ , idx_q ] = min( abs( discr_q - q_sim(t+1) ) );
       
       % Minimum and maximum release for current storage and inflow:
-      sys_param.simulation.vv = interp1qr( discr_s , min_rel(: , idx_q) , s(t) );
-      sys_param.simulation.VV = interp1qr( discr_s , max_rel(: , idx_q) , s(t) );
+      sys_param.simulation.vv = interp1q( discr_s , min_rel( : , idx_q, doy ) , s(t) );
+      sys_param.simulation.VV = interp1q( discr_s , max_rel( : , idx_q ) , s(t) );
       
       [ ~ , idx_u ] = Bellman_ddp( policy.H(:,t+1) , s(t) , q_sim(t+1) );
       
       % Choose one decision value (idx_u can return multiple equivalent
       % decisions)
-      uu = extractor_ref( idx_u , discr_u , w );
+      uu = extractor_ref( idx_u , discr_u , wt );
       
     case 'sdp'
       discr_s = sys_param.algorithm.discr_s;
@@ -120,7 +121,7 @@ for t = 1: H
       [ ~ , idx_q ] = min( abs( discr_q - q_sim(t+1) ) );
       
       v =interp1q( discr_s , min_rel( : , idx_q, doy ) , s(t) );
-      sys_param.simulation.vv = repmat( v, 1, length(discr_q) );
+      sys_interp1q( discr_s , max_rel( : , idx_q ) , s(t) );param.simulation.vv = repmat( v, 1, length(discr_q) );
       
       V = interp1q( discr_s , max_rel( : , idx_q ) , s(t) );
       sys_param.simulation.VV = repmat( V, 1, length(discr_q) );
