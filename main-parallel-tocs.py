@@ -12,7 +12,7 @@ np.random.seed(comm.rank)
 
 for maxdepth in range(1,10):
 
-  model = Folsom('folsom-daily.csv', sd='1995-10-01', ed='2015-09-30', use_tocs = True)
+  model = Folsom('folsom-daily-w2016.csv', sd='1995-10-01', ed='2016-09-30', use_tocs = True)
 
   algorithm = PTreeOpt(model.f, 
                       feature_bounds = [[0,1000], [1,365]],# [0,300]],

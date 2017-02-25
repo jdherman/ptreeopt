@@ -21,12 +21,18 @@ def init_plotting(w,h):
 
 init_plotting(8,4)
 
-path = 'hist-opt'
-DDP = 0.06 # placeholder value for now
-HIST = 0.2869 # (TAF/d)^2, normalized by ddp value
-SDP = 0.22 
+path = 'results/hist-tocs'
+# CHECK THESE
+# DDP = 0.06
+# HIST = 0.2869 # (TAF/d)^2
+# SDP = 0.22 
 # Values from Matteo on 8/30/16 email
 
+
+# NEW VALUES FEB 2017
+DDP = 0.1270
+SDP = 0.3087
+HIST = 0.3442
 
 ##############################
 plt.subplot(1,2,1)
@@ -35,7 +41,7 @@ depth = 4
 seeds = 50
 
 for s in range(seeds):
-  data = pickle.load(open(path + '/snapshots-opt-depth-' + str(depth) + '-seed-' + str(s) + '.pkl', 'rb'))
+  data = pickle.load(open(path + '/snapshots-tocs-depth-' + str(depth) + '-seed-' + str(s) + '.pkl', 'rb'))
   print s
   nfe = data['nfe']
   best_f = np.array(data['best_f'])
@@ -73,7 +79,7 @@ for depth in range(1,9):
   Jend = np.zeros(50)
 
   for s in range(seeds):
-    data = pickle.load(open(path + '/snapshots-opt-depth-' + str(depth) + '-seed-' + str(s) + '.pkl', 'rb'))
+    data = pickle.load(open(path + '/snapshots-tocs-depth-' + str(depth) + '-seed-' + str(s) + '.pkl', 'rb'))
     Jend = data['best_f'][-1] 
     d.append({'depth': depth, 'seed': s, 'type': 'training', 'J': Jend})
 
@@ -96,6 +102,7 @@ plt.ylabel('J$_{end}$ (TAF/d)$^2$')
 # plt.yscale('log')
 plt.title('(b) Reliability', loc='left', family='OfficinaSanITCMedium')
 
+plt.ylim([0.10, 0.45])
 
 # annotations and lines
 plt.axhline(HIST, linewidth=2, color='k')
@@ -108,5 +115,5 @@ plt.annotate('DDP = %0.2f' % DDP, (3, DDP-0.02), color='r', family='OfficinaSanI
 plt.gca().yaxis.set_major_formatter(ScalarFormatter())
 
 plt.tight_layout()
-plt.show()
-# plt.savefig('algo-results.svg')
+# plt.show()
+plt.savefig('algo-results.svg')
