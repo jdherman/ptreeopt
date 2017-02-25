@@ -109,7 +109,6 @@ class PTreeOpt():
     
     if log_frequency:
       snapshots = {'nfe': [], 'time': [], 'best_f': [], 'best_P': []}
-      # print('NFE\telapsed_time\tbest_f')
 
     while nfe < max_nfe:
       self.iterate()
@@ -131,6 +130,8 @@ class PTreeOpt():
     
     if log_frequency:
       return snapshots
+    else:
+      return (best_P,best_f)
   
 
   def random_tree(self, terminal_ratio = 0.5):

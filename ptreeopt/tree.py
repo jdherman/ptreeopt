@@ -113,13 +113,9 @@ class PTree:
 
 
   def get_subtree(self, begin):
-    """Adapted from DEAP: return the indices of the subtree
-    starting at list index "begin".
-    """
+    # Adapted from DEAP: return the indices of the subtree
+    # starting at list index `begin`.
     end = begin + 1
-    # print self
-    # print ' '
-
 
     if not self.L[begin].is_feature:
       return slice(begin,end)
@@ -131,12 +127,11 @@ class PTree:
       else:
         total -= 1
       end += 1
-      # print 'Begin: %d, End: %d, N: %d, total: %d' % (begin, end, self.N, total)
     return slice(begin, end)
 
 
   def get_depth(self):
-    # from deap also
+    # Adapted from DEAP
     stack = [0]
     max_depth = 0
     for item in self.L:

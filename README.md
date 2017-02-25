@@ -47,6 +47,8 @@ def f(P):
       # ...
     if action == 'something_else':
       # ...
+  
+  return objective # assumes minimization
 ```
 
 The Folsom simulation model ([link](https://github.com/jdherman/ptreeopt/blob/master/folsom/folsom.py)) gives a more detailed example. 
