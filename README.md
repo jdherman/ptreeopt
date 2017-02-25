@@ -2,7 +2,7 @@
 
 Heuristic policy search for control of dynamic systems. Uses genetic programming to develop binary trees relating observed indicator variables to actions, either real-valued or discrete. A simulation model serves as the objective function. 
 
-**Requirements:** [NumPy](http://www.numpy.org/), [PyGraphviz](https://pygraphviz.github.io/)(optional). The example model also uses [pandas](http://pandas.pydata.org/), and [Matplotlib](http://matplotlib.org/) but these are not strictly required.
+**Requirements:** [NumPy](http://www.numpy.org/), [PyGraphviz](https://pygraphviz.github.io/) (optional). The example model also uses [pandas](http://pandas.pydata.org/) and [Matplotlib](http://matplotlib.org/) but these are not strictly required.
 
 Still in active development, not stable. So far only tested with Python 2.7. Contributions and bug reports welcome!
 
