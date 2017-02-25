@@ -109,6 +109,7 @@ class PTreeOpt():
     
     if log_frequency:
       snapshots = {'nfe': [], 'time': [], 'best_f': [], 'best_P': []}
+      # print('NFE\telapsed_time\tbest_f')
 
     while nfe < max_nfe:
       self.iterate()
@@ -130,8 +131,6 @@ class PTreeOpt():
     
     if log_frequency:
       return snapshots
-    else:
-      return (best_P,best_f)
   
 
   def random_tree(self, terminal_ratio = 0.5):
@@ -212,9 +211,10 @@ class PTreeOpt():
 
   def same_box(self, a, b):
     if self.epsilons:
-      a = a/self.epsilons
-      b = b/self.epsilons
+      a = a // self.epsilons
+      b = b // self.epsilons
     return np.all(a == b)
+
 
   def binary_tournament(self, P, f):
     # select 1 parent from population P
@@ -229,34 +229,21 @@ class PTreeOpt():
       return i[0] if np.random.rand() < 0.5 else i[1]
 
 
-  # assumes minimization
-  # need to fix this from 289 notes
   def archive_sort(self, A, fA, P, fP):
+    A = np.hstack((A,P))
+    fA = np.vstack((fA, fP))
+    N = len(A)
+    keep = np.ones(N, dtype=bool)
 
-    for i,x in enumerate(P):
-      
-      dominated,added,same_box = False,False,False
+    for i in range(N):
+      for j in range(i+1,N):
+        if keep[j] and self.dominates(fA[i,:], fA[j,:]):# \
+          keep[j] = False
 
-      for j,xA in enumerate(A):
+        elif keep[i] and self.dominates(fA[j,:], fA[i,:]):
+          keep[i] = False
 
-        # if population member dominates archive member, replace
-        if self.dominates(fP[i,:], fA[j,:]):
-          A[j] = P[i]
-          fA[j,:] = fP[i,:]
-          added = True
-          break
+        elif self.same_box(fA[i,:], fA[j,:]):
+          keep[np.random.choice([i,j])] = False
 
-        # if it's dominated, ignore
-        elif self.dominates(fA[j,:], fP[i,:]):
-          dominated = True
-          break
-
-        elif self.same_box(fP[i,:], fA[j,:]):
-          same_box = True
-
-      if not dominated and not added and not same_box:
-        A = np.append(A, x)
-        fA = np.vstack((fA, fP[i,:]))
-
-    return (A,fA)
-
+    return (A[keep],fA[keep,:])
