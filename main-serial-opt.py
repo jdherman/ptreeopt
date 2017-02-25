@@ -7,7 +7,7 @@ import pandas as pd
 
 np.random.seed(13)
 
-model = Folsom('folsom/data/folsom-daily.csv', sd='1995-10-01', ed='2015-09-30', use_tocs = False)
+model = Folsom('folsom/data/folsom-daily-w2016.csv', sd='1995-10-01', ed='2015-09-30', use_tocs = False)
 
 algorithm = PTreeOpt(model.f, 
                     feature_bounds = [[0,1000], [1,365], [0,300]],
@@ -21,5 +21,5 @@ algorithm = PTreeOpt(model.f,
                     )
 
 
-snapshots = algorithm.run(max_nfe = 50000, log_frequency = 100)
-# pickle.dump(snapshots, open('snapshots-hist-opt.pkl', 'wb'))
+snapshots = algorithm.run(max_nfe = 1000, log_frequency = 100)
+pickle.dump(snapshots, open('snapshots-hist-opt-test.pkl', 'wb'))

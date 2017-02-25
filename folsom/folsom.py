@@ -13,7 +13,7 @@ def taf_to_cfs(Q):
 
 def max_release(S):
   # rule from http://www.usbr.gov/mp/cvp//cvp-cas/docs/Draft_Findings/130814_tech_memo_flood_control_purpose_hydrology_methods_results.pdf
-  storage = [0, 100, 400, 600, 975]
+  storage = [90, 100, 400, 600, 975]
   release = cfs_to_taf(np.array([0, 35000, 40000, 115000, 130000])) # make the last one 130 for future runs
   return np.interp(S, storage, release)
 
@@ -137,6 +137,10 @@ class Folsom():
       if R[t] > cfs_to_taf(self.max_safe_release):
         flood_cost[t] += 10**3 * (R[t] - cfs_to_taf(self.max_safe_release)) # flood penalty, high enough to be a constraint
 
+    # end of period penalty
+    # EOP = 0
+    # if not self.cc and S[-1] < self.df.storage.values[0]:
+    #   EOP = 10**5 
 
     if mode == 'simulation' or self.multiobj:
       df = self.df.copy()
@@ -157,7 +161,7 @@ class Folsom():
         return np.sqrt(np.mean((S - self.df.storage.values)**2))
       else:
         if not self.multiobj:
-          return shortage_cost.sum() + flood_cost.sum()
+          return shortage_cost.sum() + flood_cost.sum() # + EOP
         else:
           J1 = shortage_cost.sum() # water supply
           J2 = taf_to_cfs(df.Rs.max()) # peak flood
