@@ -105,7 +105,7 @@ class Folsom():
         target[t] = 0.8*D[t]
       elif policy == 'Hedge_70':
         target[t] = 0.7*D[t]
-      elif policy == 'Hedge_80':
+      elif policy == 'Hedge_60':
         target[t] = 0.6*D[t]
       elif policy == 'Hedge_50':
         target[t] = 0.5*D[t]

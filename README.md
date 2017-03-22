@@ -1,4 +1,4 @@
-##Policy Tree Optimization
+## Policy Tree Optimization
 
 Heuristic policy search for control of dynamic systems. Uses genetic programming to develop binary trees relating observed indicator variables to actions, either real-valued or discrete. A simulation model serves as the objective function. 
 
