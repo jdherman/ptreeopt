@@ -99,7 +99,6 @@ class PTreeOpt():
       comm = MPI.COMM_WORLD
       size = comm.Get_size()
       rank = comm.Get_rank()
-      split = lambda L,n: [L[i:i+n] for i in range(0,len(L),n)]
 
     is_master = (not parallel) or (parallel and rank==0)
     start_time = time.time()
@@ -123,7 +122,7 @@ class PTreeOpt():
         self.objectives = np.array([self.f(P) for P in self.population])
       else:
         if is_master:
-          chunks = split(self.population, int(self.popsize/size)+1)
+          chunks = np.array_split(self.population, size)
         else:
           chunks = None
 
@@ -133,7 +132,8 @@ class PTreeOpt():
         comm.barrier()
 
         if is_master:
-          self.objectives = np.array([j for i in objs for j in i]) # flatten list
+          self.objectives = np.concatenate(objs) # flatten list
+          print(self.objectives)
 
       nfe += self.popsize
 
