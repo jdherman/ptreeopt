@@ -1,2 +1,2 @@
-from opt import PTreeOpt
-import tree
+from .opt import PTreeOpt
+from .tree import *

@@ -16,7 +16,7 @@ algorithm = PTreeOpt(model.f,
                     mu = 20,
                     cx_prob = 0.70,
                     population_size = 100,
-                    max_depth = 7
+                    max_depth = 5
                     )
 
 

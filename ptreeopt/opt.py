@@ -1,7 +1,7 @@
 from __future__ import division
 import numpy as np
 import time, datetime, copy
-from tree import *
+from .tree import *
 
 
 class PTreeOpt():
@@ -61,21 +61,17 @@ class PTreeOpt():
         self.best_f = self.objectives[parents]
         self.best_P = self.population[parents]
       else:
-          self.best_P,self.best_f = self.archive_sort(self.best_P, self.best_f, 
-                                                      self.population, self.objectives)
-
+        self.best_P,self.best_f = self.archive_sort(self.best_P, self.best_f, 
+                                                    self.population, self.objectives)
 
     # first: mutate the parents, only keep child if it's better
+    # changed 7/17/17 JDH: now mutate all except best parent (single-obj)
     children = set(range(self.popsize)) - set(parents)
 
-    for i in parents:
+    for i in parents[1:]:
       child = self.mutate(self.population[i])
       child.prune()
-      obj = self.f(child)
-      if (not self.multiobj and obj < self.objectives[i]) or \
-         (self.multiobj and self.dominates(obj, self.objectives[i])):
-        self.population[i] = child
-        self.objectives[i] = obj
+      self.population[i] = child
 
     # then crossover to develop the rest of the population
     for i in children:
@@ -88,48 +84,64 @@ class PTreeOpt():
         while child.get_depth() > self.max_depth:
           child = self.crossover(P1,P2)[0]
 
-      else: # replace with randomly chosen population member
-        child = np.random.choice(self.population, 1)[0]
+      else: # replace with randomly chosen parent
+        child = np.random.choice(self.population[parents], 1)[0]
 
       child = self.mutate(child)
       child.prune()
       self.population[i] = child
-      self.objectives[i] = self.f(self.population[i])
 
 
-  def run(self, max_nfe = 100, log_frequency = None):
-            
+  def run(self, max_nfe=100, parallel=False, log_frequency=None):
+    
+    if parallel:
+      from mpi4py import MPI
+      comm = MPI.COMM_WORLD
+      size = comm.Get_size()
+      rank = comm.Get_rank()
+
+    is_master = (not parallel) or (parallel and rank==0)
     start_time = time.time()
     nfe,last_log = 0,0
 
-    self.population = np.array([self.random_tree() for _ in range(self.popsize)])
-    self.objectives = np.array([self.f(P) for P in self.population])
-    self.best_f = None
-    self.best_P = None
-    
-    if log_frequency:
-      snapshots = {'nfe': [], 'time': [], 'best_f': [], 'best_P': []}
-      # print('NFE\telapsed_time\tbest_f')
+    if is_master:
+      self.population = np.array([self.random_tree() for _ in range(self.popsize)])
+      self.best_f = None
+      self.best_P = None
+      
+      if log_frequency:
+        snapshots = {'nfe': [], 'time': [], 'best_f': [], 'best_P': []}
 
     while nfe < max_nfe:
-      self.iterate()
+
+      # evaluate objectives
+      if not parallel:
+        self.objectives = np.array([self.f(P) for P in self.population])
+      else:
+        local_P = comm.scatter(self.population, root=0)
+        local_f = self.f(local_P)
+        self.objectives = comm.gather(local_f, root=0)
+
       nfe += self.popsize
 
-      if log_frequency is not None and nfe >= last_log + log_frequency:
-        elapsed = datetime.timedelta(seconds=time.time()-start_time).seconds
+      if is_master:
+        self.iterate()
 
-        if not self.multiobj:
-          print('%d\t%s\t%0.3f\t%s' % (nfe, elapsed, self.best_f, self.best_P))
-        else:
-          print('# nfe = %d\n%s' % (nfe, self.best_f)) 
-          print(self.best_f.shape)       
-        snapshots['nfe'].append(nfe)
-        snapshots['time'].append(elapsed)
-        snapshots['best_f'].append(self.best_f)
-        snapshots['best_P'].append(self.best_P)
-        last_log = nfe
+        if log_frequency is not None and nfe >= last_log + log_frequency:
+          elapsed = datetime.timedelta(seconds=time.time()-start_time).seconds
+
+          if not self.multiobj:
+            print('%d\t%s\t%0.3f\t%s' % (nfe, elapsed, self.best_f, self.best_P))
+          else:
+            print('# nfe = %d\n%s' % (nfe, self.best_f)) 
+            print(self.best_f.shape)       
+          snapshots['nfe'].append(nfe)
+          snapshots['time'].append(elapsed)
+          snapshots['best_f'].append(self.best_f)
+          snapshots['best_P'].append(self.best_P)
+          last_log = nfe
     
-    if log_frequency:
+    if is_master and log_frequency:
       return snapshots
   
 
