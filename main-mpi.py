@@ -19,4 +19,4 @@ algorithm = PTreeOpt(model.f,
                    max_depth = 5
                    )
 
-snapshots = algorithm.run(max_nfe=1000, log_frequency=100, parallel=False)
+snapshots = algorithm.run(max_nfe=1000, log_frequency=100, parallel=True)

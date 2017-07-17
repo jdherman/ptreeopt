@@ -99,6 +99,7 @@ class PTreeOpt():
       comm = MPI.COMM_WORLD
       size = comm.Get_size()
       rank = comm.Get_rank()
+      split = lambda L,n: [L[i:i+n] for i in range(0,len(L),n)]
 
     is_master = (not parallel) or (parallel and rank==0)
     start_time = time.time()
@@ -111,6 +112,9 @@ class PTreeOpt():
       
       if log_frequency:
         snapshots = {'nfe': [], 'time': [], 'best_f': [], 'best_P': []}
+    else:
+      self.population = None
+
 
     while nfe < max_nfe:
 
@@ -118,9 +122,18 @@ class PTreeOpt():
       if not parallel:
         self.objectives = np.array([self.f(P) for P in self.population])
       else:
-        local_P = comm.scatter(self.population, root=0)
-        local_f = self.f(local_P)
-        self.objectives = comm.gather(local_f, root=0)
+        if is_master:
+          chunks = split(self.population, int(self.popsize/size)+1)
+        else:
+          chunks = None
+
+        local_Ps = comm.scatter(chunks, root=0)
+        local_fs = [self.f(P) for P in local_Ps]
+        objs = comm.gather(local_fs, root=0)
+        comm.barrier()
+
+        if is_master:
+          self.objectives = np.array([j for i in objs for j in i]) # flatten list
 
       nfe += self.popsize
 
