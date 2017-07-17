@@ -2,19 +2,16 @@ from __future__ import division
 import numpy as np 
 import pandas as pd
 
+cfs_to_taf = 2.29568411*10**-5 * 86400 / 1000
+taf_to_cfs = 1000 / 86400 * 43560
+
 def water_day(d):
   return d - 274 if d >= 274 else d + 91
-
-def cfs_to_taf(Q):
-  return Q * 2.29568411*10**-5 * 86400 / 1000
-
-def taf_to_cfs(Q):
-  return Q * 1000 / 86400 * 43560
 
 def max_release(S):
   # rule from http://www.usbr.gov/mp/cvp//cvp-cas/docs/Draft_Findings/130814_tech_memo_flood_control_purpose_hydrology_methods_results.pdf
   storage = [90, 100, 400, 600, 975]
-  release = cfs_to_taf(np.array([0, 35000, 40000, 115000, 130000])) # make the last one 130 for future runs
+  release = cfs_to_taf*np.array([0, 35000, 40000, 115000, 130000]) # make the last one 130 for future runs
   return np.interp(S, storage, release)
 
 def tocs(d):
@@ -134,8 +131,8 @@ class Folsom():
       # should be able to vectorize this.  
       shortage_cost[t] = max(D[t] - R[t], 0)**2/T #+ max(R[t]-100, 0)**2
 
-      if R[t] > cfs_to_taf(self.max_safe_release):
-        flood_cost[t] += 10**3 * (R[t] - cfs_to_taf(self.max_safe_release)) # flood penalty, high enough to be a constraint
+      if R[t] > cfs_to_taf*self.max_safe_release:
+        flood_cost[t] += 10**3 * (R[t] - cfs_to_taf*self.max_safe_release) # flood penalty, high enough to be a constraint
 
     # end of period penalty
     # EOP = 0
@@ -149,7 +146,7 @@ class Folsom():
       df['demand'] = pd.Series(D, index=df.index)
       df['target'] = pd.Series(target, index=df.index)
       head = (volume_to_height(df.Ss) - self.turbine_elev)
-      power_release = taf_to_cfs(df.Rs.copy()).clip(0, self.turbine_max_release)
+      power_release = taf_to_cfs*df.Rs.copy().clip(0, self.turbine_max_release)
       df['power'] = (24*0.85*10**-4/1.181)*(head*power_release)
 
 
@@ -164,7 +161,7 @@ class Folsom():
           return shortage_cost.sum() + flood_cost.sum() # + EOP
         else:
           J1 = shortage_cost.sum() # water supply
-          J2 = taf_to_cfs(df.Rs.max()) # peak flood
+          J2 = taf_to_cfs*df.Rs.max() # peak flood
           # (3) environmental alteration:
           # integrate between inflow/outflow exceedance curves
           ixi = np.argsort(Q)
