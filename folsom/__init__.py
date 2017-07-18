@@ -1,1 +1,1 @@
-from folsom import Folsom
+from .folsom import Folsom

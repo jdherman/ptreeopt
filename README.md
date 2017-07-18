@@ -67,5 +67,8 @@ import pickle
 pickle.dump(snapshots, open('snapshots.pkl', 'wb'))
 ```
 
+### Parallel
+Use `algorithm.run(..., parallel=True)` to run in parallel (requires [mpi4py](http://pythonhosted.org/mpi4py/)). Then run `mpirun python main.py` on the command line or in a cluster job script. This is "generational" parallelization, meaning that the number of processors should not exceed the population size.
+
 ### License
 Copyright (C) 2017 Jon Herman and Matteo Giuliani. Released under the [MIT license](LICENSE.md).
