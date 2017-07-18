@@ -133,7 +133,6 @@ class PTreeOpt():
 
         if is_master:
           self.objectives = np.concatenate(objs) # flatten list
-          print(self.objectives)
 
       nfe += self.popsize
 
