@@ -4,9 +4,14 @@ Heuristic policy search for control of dynamic systems. Uses genetic programming
 
 **Requirements:** [NumPy](http://www.numpy.org/), [PyGraphviz](https://pygraphviz.github.io/) (optional). The example model also uses [pandas](http://pandas.pydata.org/) and [Matplotlib](http://matplotlib.org/) but these are not strictly required.
 
-Still in active development, not stable. So far only tested with Python 2.7. Contributions and bug reports welcome!
+Still in active development, so far only tested with Python 2.7. Contributions and bug reports welcome!
 
-**Citation:** Paper in review. The full set of experiments and data are available in the [paper branch](https://github.com/jdherman/ptreeopt/tree/paper).
+**Citation:** [Link to paper](http://www.sciencedirect.com/science/article/pii/S1364815217306540)
+```
+Herman, J.D. and Giuliani, M. Policy tree optimization for threshold-based water resources 
+management over multiple timescales, Environmental Modelling and Software, 99, 39-51, 2018.
+```
+The full set of experiments and data are available in the [paper branch](https://github.com/jdherman/ptreeopt/tree/paper).
 
 ### Example
 This example develops a control policy based on a simulation model of Folsom Reservoir.
