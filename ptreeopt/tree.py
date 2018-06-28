@@ -34,7 +34,7 @@ class Action(Node):
             return self.value
 
 
-class PTree:
+class PTree(object):
 
     def __init__(self, L, feature_names=None):
         self.L = []
@@ -159,9 +159,11 @@ class PTree:
 
     def _prune_subtree(self, i, s, mode):
         '''Removes illogical subtree relationships.
+        
         If a feature in the right subtree has a threshold less than current,
         Replace it with its own right subtree. If a feature in the left
-        subtree has a threshold greater than current, replace it with its left subtree.'''
+        subtree has a threshold greater than current, replace it with its left
+        subtree.'''
 
         current = self[i]
 
