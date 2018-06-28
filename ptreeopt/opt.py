@@ -6,12 +6,12 @@ import copy
 from .tree import *
 
 
-class PTreeOpt():
+class PTreeOpt(object):
 
-    def __init__(self, f, feature_bounds, discrete_actions=False, action_bounds=None,
-                 action_names=None, population_size=100, mu=15, max_depth=4,
-                 mut_prob=0.9, cx_prob=0.9, feature_names=None,
-                 multiobj=False, epsilons=None):
+    def __init__(self, f, feature_bounds, discrete_actions=False,
+                 action_bounds=None, action_names=None, population_size=100, 
+                 mu=15, max_depth=4, mut_prob=0.9, cx_prob=0.9,
+                 feature_names=None, multiobj=False, epsilons=None):
 
         self.f = f
         self.num_features = len(feature_bounds)
@@ -29,22 +29,24 @@ class PTreeOpt():
         self.epsilons = epsilons
 
         if feature_names is not None and len(feature_names) != len(feature_bounds):
-            raise ValueError(
-                'feature_names and feature_bounds must be the same length.')
+            raise ValueError(('feature_names and feature_bounds '
+                              'must be the same length.'))
 
         if discrete_actions:
             if action_names is None or action_bounds is not None:
-                raise ValueError('''discrete_actions must be run with action_names, 
-        (which are strings), and not action_bounds.''')
+                raise ValueError(('discrete_actions must be run with '
+                                  'action_names, (which are strings), '
+                                  'and not action_bounds.'))
         else:
             if action_bounds is None:
-                raise ValueError('''Real-valued actions (which is the case by 
-        default, discrete_actions=False) must include action_bounds. 
-        Currently only one action is supported, so bounds = [lower, upper].''')
+                raise ValueError(('Real-valued actions (which is the case by '
+                                'default, discrete_actions=False) must include '
+                                'action_bounds. Currently only one action is '
+                                'supported, so bounds = [lower, upper].'))
 
         if mu > population_size:
-            raise ValueError('''Number of parents (mu) cannot be greater than 
-      the population_size.''')
+            raise ValueError(('Number of parents (mu) cannot be greater than '
+                              'the population_size.'))
 
     def iterate(self):
 
@@ -63,8 +65,9 @@ class PTreeOpt():
                 self.best_f = self.objectives[parents]
                 self.best_P = self.population[parents]
             else:
-                self.best_P, self.best_f = self.archive_sort(self.best_P, self.best_f,
-                                                             self.population, self.objectives)
+                self.best_P, self.best_f = self.archive_sort(self.best_P,
+                                                 self.best_f, self.population, 
+                                                 self.objectives)
 
         # first: mutate the parents, only keep child if it's better
         # changed 7/17/17 JDH: now mutate all except best parent (single-obj)
@@ -170,7 +173,8 @@ class PTreeOpt():
             current_depth = S.pop()
 
             # action node
-            if current_depth == depth or (current_depth > 0 and np.random.rand() < terminal_ratio):
+            if current_depth == depth or (current_depth > 0 and\
+                                          np.random.rand() < terminal_ratio):
                 if self.discrete_actions:
                     L.append([str(np.random.choice(self.action_names))])
                 else:
