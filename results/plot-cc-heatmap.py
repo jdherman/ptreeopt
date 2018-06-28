@@ -6,27 +6,29 @@ import seaborn as sns
 import pandas as pd
 from folsom import Folsom
 
-def init_plotting(w,h):
-  sns.set_style('whitegrid')
-  plt.rcParams['figure.figsize'] = (w,h)
-  plt.rcParams['font.size'] = 8
-  plt.rcParams['font.family'] = 'Source Sans Pro'
-  # plt.rcParams['font.weight'] = 'bold'
-  plt.rcParams['axes.labelsize'] = 1.1*plt.rcParams['font.size']
-  plt.rcParams['axes.titlesize'] = 1.1*plt.rcParams['font.size']
-  plt.rcParams['legend.fontsize'] = plt.rcParams['font.size']
-  plt.rcParams['xtick.labelsize'] = plt.rcParams['font.size']
-  plt.rcParams['ytick.labelsize'] = plt.rcParams['font.size']
+
+def init_plotting(w, h):
+    sns.set_style('whitegrid')
+    plt.rcParams['figure.figsize'] = (w, h)
+    plt.rcParams['font.size'] = 8
+    plt.rcParams['font.family'] = 'Source Sans Pro'
+    # plt.rcParams['font.weight'] = 'bold'
+    plt.rcParams['axes.labelsize'] = 1.1 * plt.rcParams['font.size']
+    plt.rcParams['axes.titlesize'] = 1.1 * plt.rcParams['font.size']
+    plt.rcParams['legend.fontsize'] = plt.rcParams['font.size']
+    plt.rcParams['xtick.labelsize'] = plt.rcParams['font.size']
+    plt.rcParams['ytick.labelsize'] = plt.rcParams['font.size']
 
 
-init_plotting(10,10)
+init_plotting(10, 10)
 
 ##############################
 
 # d = []
 
 # scenarios = pd.read_csv('data/folsom-cc-inflows.csv', index_col=0).columns
-annQs = pd.read_csv('folsom/data/folsom-cc-annQ-MA30.csv', index_col=0, parse_dates=True)
+annQs = pd.read_csv('folsom/data/folsom-cc-annQ-MA30.csv',
+                    index_col=0, parse_dates=True)
 annQs['hist'] = 2700.0
 annQs = annQs[annQs.columns.drop(annQs.filter(like='rcp26').columns)]
 annQs = annQs['2099'].max(axis=0).sort_values()
@@ -76,11 +78,13 @@ df = df[cols[:]]
 ax = sns.heatmap(df, vmax=10, vmin=1, square=True)
 
 yt = plt.gca().get_yticklabels()
-plt.gca().set_yticklabels([thing.get_text().split('_r1i1p1')[0] for thing in yt])
+plt.gca().set_yticklabels(
+    [thing.get_text().split('_r1i1p1')[0] for thing in yt])
 plt.yticks(rotation=0)
 
 xt = plt.gca().get_xticklabels()
-plt.gca().set_xticklabels([thing.get_text().split('_r1i1p1')[0] for thing in xt])
+plt.gca().set_xticklabels(
+    [thing.get_text().split('_r1i1p1')[0] for thing in xt])
 plt.xticks(rotation=90)
 
 plt.ylabel('Optimized in Scenario ...')

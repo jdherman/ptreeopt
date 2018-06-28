@@ -7,40 +7,40 @@ import pandas as pd
 # from folsom import Folsom
 
 
-def init_plotting(w,h):
-  sns.set_style('whitegrid')
-  plt.rcParams['figure.figsize'] = (w,h)
-  plt.rcParams['font.size'] = 13
-  plt.rcParams['font.family'] = 'OfficinaSanITCBoo'
-  # plt.rcParams['font.weight'] = 'bold'
-  plt.rcParams['axes.labelsize'] = 1.1*plt.rcParams['font.size']
-  plt.rcParams['axes.titlesize'] = 1.1*plt.rcParams['font.size']
-  plt.rcParams['legend.fontsize'] = plt.rcParams['font.size']
-  plt.rcParams['xtick.labelsize'] = plt.rcParams['font.size']
-  plt.rcParams['ytick.labelsize'] = plt.rcParams['font.size']
+def init_plotting(w, h):
+    sns.set_style('whitegrid')
+    plt.rcParams['figure.figsize'] = (w, h)
+    plt.rcParams['font.size'] = 13
+    plt.rcParams['font.family'] = 'OfficinaSanITCBoo'
+    # plt.rcParams['font.weight'] = 'bold'
+    plt.rcParams['axes.labelsize'] = 1.1 * plt.rcParams['font.size']
+    plt.rcParams['axes.titlesize'] = 1.1 * plt.rcParams['font.size']
+    plt.rcParams['legend.fontsize'] = plt.rcParams['font.size']
+    plt.rcParams['xtick.labelsize'] = plt.rcParams['font.size']
+    plt.rcParams['ytick.labelsize'] = plt.rcParams['font.size']
 
 
-init_plotting(5,6)
+init_plotting(5, 6)
 
 # Found using a different script. These scenarios have no flood control costs.
-adaptable_scenarios = ['access1-0_rcp45_r1i1p1', 'access1-0_rcp85_r1i1p1', 
-'bcc-csm1-1-m_rcp45_r1i1p1', 'bcc-csm1-1-m_rcp85_r1i1p1', 'bcc-csm1-1_rcp26_r1i1p1', 
-'bcc-csm1-1_rcp45_r1i1p1', 'bcc-csm1-1_rcp60_r1i1p1', 'ccsm4_rcp26_r1i1p1', 'ccsm4_rcp45_r1i1p1', 
-'cesm1-cam5_rcp26_r1i1p1', 'cesm1-cam5_rcp60_r1i1p1', 'cesm1-cam5_rcp85_r1i1p1', 'cmcc-cm_rcp45_r1i1p1', 
-'cmcc-cm_rcp85_r1i1p1', 'csiro-mk3-6-0_rcp26_r1i1p1', 'csiro-mk3-6-0_rcp45_r1i1p1', 'csiro-mk3-6-0_rcp60_r1i1p1', 
-'csiro-mk3-6-0_rcp85_r1i1p1', 'fgoals-g2_rcp26_r1i1p1', 'fgoals-g2_rcp45_r1i1p1', 'fio-esm_rcp26_r1i1p1', 
-'fio-esm_rcp60_r1i1p1', 'fio-esm_rcp85_r1i1p1', 'gfdl-cm3_rcp26_r1i1p1', 'gfdl-cm3_rcp45_r1i1p1', 
-'gfdl-cm3_rcp60_r1i1p1', 'gfdl-cm3_rcp85_r1i1p1', 'gfdl-esm2g_rcp45_r1i1p1', 'gfdl-esm2m_rcp26_r1i1p1', 
-'gfdl-esm2m_rcp45_r1i1p1', 'gfdl-esm2m_rcp60_r1i1p1', 'giss-e2-h-cc_rcp45_r1i1p1', 'giss-e2-r-cc_rcp45_r1i1p1', 
-'giss-e2-r_rcp26_r1i1p1', 'giss-e2-r_rcp45_r1i1p1', 'giss-e2-r_rcp60_r1i1p1', 'giss-e2-r_rcp85_r1i1p1', 
-'hadgem2-ao_rcp26_r1i1p1', 'hadgem2-ao_rcp60_r1i1p1', 'hadgem2-cc_rcp85_r1i1p1', 'hadgem2-es_rcp26_r1i1p1', 
-'hadgem2-es_rcp45_r1i1p1', 'hadgem2-es_rcp60_r1i1p1', 'inmcm4_rcp45_r1i1p1', 'ipsl-cm5a-mr_rcp26_r1i1p1', 
-'ipsl-cm5b-lr_rcp85_r1i1p1', 'miroc5_rcp26_r1i1p1', 'miroc5_rcp45_r1i1p1', 'miroc5_rcp60_r1i1p1', 
-'miroc5_rcp85_r1i1p1', 'miroc-esm-chem_rcp26_r1i1p1', 'miroc-esm-chem_rcp45_r1i1p1', 'miroc-esm-chem_rcp60_r1i1p1', 
-'miroc-esm_rcp26_r1i1p1', 'miroc-esm_rcp45_r1i1p1', 'miroc-esm_rcp85_r1i1p1', 'mpi-esm-lr_rcp26_r1i1p1', 
-'mpi-esm-mr_rcp26_r1i1p1', 'mpi-esm-mr_rcp45_r1i1p1', 'mpi-esm-mr_rcp85_r1i1p1', 'mri-cgcm3_rcp26_r1i1p1', 
-'mri-cgcm3_rcp45_r1i1p1', 'mri-cgcm3_rcp85_r1i1p1', 'noresm1-m_rcp26_r1i1p1', 'noresm1-m_rcp60_r1i1p1', 
-'noresm1-m_rcp85_r1i1p1']
+adaptable_scenarios = ['access1-0_rcp45_r1i1p1', 'access1-0_rcp85_r1i1p1',
+                       'bcc-csm1-1-m_rcp45_r1i1p1', 'bcc-csm1-1-m_rcp85_r1i1p1', 'bcc-csm1-1_rcp26_r1i1p1',
+                       'bcc-csm1-1_rcp45_r1i1p1', 'bcc-csm1-1_rcp60_r1i1p1', 'ccsm4_rcp26_r1i1p1', 'ccsm4_rcp45_r1i1p1',
+                       'cesm1-cam5_rcp26_r1i1p1', 'cesm1-cam5_rcp60_r1i1p1', 'cesm1-cam5_rcp85_r1i1p1', 'cmcc-cm_rcp45_r1i1p1',
+                       'cmcc-cm_rcp85_r1i1p1', 'csiro-mk3-6-0_rcp26_r1i1p1', 'csiro-mk3-6-0_rcp45_r1i1p1', 'csiro-mk3-6-0_rcp60_r1i1p1',
+                       'csiro-mk3-6-0_rcp85_r1i1p1', 'fgoals-g2_rcp26_r1i1p1', 'fgoals-g2_rcp45_r1i1p1', 'fio-esm_rcp26_r1i1p1',
+                       'fio-esm_rcp60_r1i1p1', 'fio-esm_rcp85_r1i1p1', 'gfdl-cm3_rcp26_r1i1p1', 'gfdl-cm3_rcp45_r1i1p1',
+                       'gfdl-cm3_rcp60_r1i1p1', 'gfdl-cm3_rcp85_r1i1p1', 'gfdl-esm2g_rcp45_r1i1p1', 'gfdl-esm2m_rcp26_r1i1p1',
+                       'gfdl-esm2m_rcp45_r1i1p1', 'gfdl-esm2m_rcp60_r1i1p1', 'giss-e2-h-cc_rcp45_r1i1p1', 'giss-e2-r-cc_rcp45_r1i1p1',
+                       'giss-e2-r_rcp26_r1i1p1', 'giss-e2-r_rcp45_r1i1p1', 'giss-e2-r_rcp60_r1i1p1', 'giss-e2-r_rcp85_r1i1p1',
+                       'hadgem2-ao_rcp26_r1i1p1', 'hadgem2-ao_rcp60_r1i1p1', 'hadgem2-cc_rcp85_r1i1p1', 'hadgem2-es_rcp26_r1i1p1',
+                       'hadgem2-es_rcp45_r1i1p1', 'hadgem2-es_rcp60_r1i1p1', 'inmcm4_rcp45_r1i1p1', 'ipsl-cm5a-mr_rcp26_r1i1p1',
+                       'ipsl-cm5b-lr_rcp85_r1i1p1', 'miroc5_rcp26_r1i1p1', 'miroc5_rcp45_r1i1p1', 'miroc5_rcp60_r1i1p1',
+                       'miroc5_rcp85_r1i1p1', 'miroc-esm-chem_rcp26_r1i1p1', 'miroc-esm-chem_rcp45_r1i1p1', 'miroc-esm-chem_rcp60_r1i1p1',
+                       'miroc-esm_rcp26_r1i1p1', 'miroc-esm_rcp45_r1i1p1', 'miroc-esm_rcp85_r1i1p1', 'mpi-esm-lr_rcp26_r1i1p1',
+                       'mpi-esm-mr_rcp26_r1i1p1', 'mpi-esm-mr_rcp45_r1i1p1', 'mpi-esm-mr_rcp85_r1i1p1', 'mri-cgcm3_rcp26_r1i1p1',
+                       'mri-cgcm3_rcp45_r1i1p1', 'mri-cgcm3_rcp85_r1i1p1', 'noresm1-m_rcp26_r1i1p1', 'noresm1-m_rcp60_r1i1p1',
+                       'noresm1-m_rcp85_r1i1p1']
 
 ##############################
 # STEP 1: All of the validation runs (optimized in s1, evaluated in s2) plus historical
@@ -51,7 +51,8 @@ adaptable_scenarios = ['access1-0_rcp45_r1i1p1', 'access1-0_rcp85_r1i1p1',
 # d = []
 
 # # scenarios = pd.read_csv('folsom/data/folsom-cc-inflows.csv', index_col=0).columns
-annQs = pd.read_csv('../folsom/data/folsom-cc-annQ-MA30.csv', index_col=0, parse_dates=True)
+annQs = pd.read_csv('../folsom/data/folsom-cc-annQ-MA30.csv',
+                    index_col=0, parse_dates=True)
 # hist_snapshots = pickle.load(open('results/hist-tocs/snapshots-tocs-depth-3-seed-0.pkl', 'rb'))
 # histP = hist_snapshots['best_P'][-1]
 # cc_snapshots = pickle.load(open('results/cc-full/snapshots-cc-full-4.pkl', 'rb'))
@@ -87,17 +88,17 @@ df = df[df.scenario.isin(adaptable_scenarios)]
 df.J[df.J > 4] = 4.0
 
 annQs = annQs[df.scenario.unique()]['2099'].max(axis=0).sort_values()
-sns.stripplot(data=df, x='J', y='scenario', hue='type', 
+sns.stripplot(data=df, x='J', y='scenario', hue='type',
               order=annQs.index.values, split=False, edgecolor='none',
               palette=['gold', '0.25', 'royalblue'])
 
 # plt.xscale('log')
 
-for i,s in enumerate(annQs.index.values):
-  points = df[df.scenario == s].J.values
-  plt.plot([min(points), max(points)], [i,i], color='0.75', linewidth=0.5)
+for i, s in enumerate(annQs.index.values):
+    points = df[df.scenario == s].J.values
+    plt.plot([min(points), max(points)], [i, i], color='0.75', linewidth=0.5)
 
-plt.xlim([-0.1,4.1])
+plt.xlim([-0.1, 4.1])
 # plt.ylim([-1,67])
 plt.gca().set_yticklabels([])
 plt.gca().xaxis.grid(False)

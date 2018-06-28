@@ -1,38 +1,41 @@
-import numpy as np 
+import numpy as np
 import matplotlib.pyplot as plt
 
 from opt import *
 
 # algorithm = PTreeOpt()
 
+
 def f(P, plot=False):
-  T = 100
-  Q = np.random.normal(50,10,T)
-  R = np.zeros_like(Q)
-  S = np.zeros_like(Q)
-  K = 900
-  S[0] = 500
-  obj = 0
+    T = 100
+    Q = np.random.normal(50, 10, T)
+    R = np.zeros_like(Q)
+    S = np.zeros_like(Q)
+    K = 900
+    S[0] = 500
+    obj = 0
 
-  for t in range(T):
-    W = S[t-1] + Q[t]
-    R[t] = min(P.evaluate([W]), W)
-    S[t] = min(W - R[t], K)
-    obj += R[t]
+    for t in range(T):
+        W = S[t - 1] + Q[t]
+        R[t] = min(P.evaluate([W]), W)
+        S[t] = min(W - R[t], K)
+        obj += R[t]
 
-  if plot:
-    plt.plot(S+Q)
-    plt.plot(R)
-    plt.show()
+    if plot:
+        plt.plot(S + Q)
+        plt.plot(R)
+        plt.show()
 
-  return -obj # minimizes by default
+    return -obj  # minimizes by default
+
 
 # 1 feature: res. storage
-feature_bounds = [[0,1000]]
+feature_bounds = [[0, 1000]]
 names = ['Storage']
-action_bounds = [0,100]
+action_bounds = [0, 100]
 
-algorithm = PTreeOpt(f, 10000, feature_bounds, action_bounds, feature_names=names, population_size=100)
+algorithm = PTreeOpt(f, 10000, feature_bounds, action_bounds,
+                     feature_names=names, population_size=100)
 
 algorithm.initialize()
 # print algorithm.objectives
@@ -45,7 +48,6 @@ print algorithm.best_f
 f(algorithm.best_P, plot=True)
 
 algorithm.best_P.graphviz_export('graphviz/bestP')
-
 
 
 # Need to add:
@@ -61,4 +63,3 @@ algorithm.best_P.graphviz_export('graphviz/bestP')
 # to validate a tree ... this will be important
 # lower nodes/logic (should not) contradict parent logic
 # or else some branches will always evaluate false (this might be ok)
-

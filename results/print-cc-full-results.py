@@ -6,17 +6,18 @@ import pandas as pd
 from matplotlib.ticker import ScalarFormatter
 # http://stackoverflow.com/questions/21920233/matplotlib-log-scale-tick-label-number-formatting
 
-def init_plotting(w,h):
-  sns.set_style('whitegrid')
-  plt.rcParams['figure.figsize'] = (w,h)
-  plt.rcParams['font.size'] = 13
-  plt.rcParams['font.family'] = 'OfficinaSanITCBoo'
-  # plt.rcParams['font.weight'] = 'bold'
-  plt.rcParams['axes.labelsize'] = 1.1*plt.rcParams['font.size']
-  plt.rcParams['axes.titlesize'] = 1.1*plt.rcParams['font.size']
-  plt.rcParams['legend.fontsize'] = plt.rcParams['font.size']
-  plt.rcParams['xtick.labelsize'] = plt.rcParams['font.size']
-  plt.rcParams['ytick.labelsize'] = plt.rcParams['font.size']
+
+def init_plotting(w, h):
+    sns.set_style('whitegrid')
+    plt.rcParams['figure.figsize'] = (w, h)
+    plt.rcParams['font.size'] = 13
+    plt.rcParams['font.family'] = 'OfficinaSanITCBoo'
+    # plt.rcParams['font.weight'] = 'bold'
+    plt.rcParams['axes.labelsize'] = 1.1 * plt.rcParams['font.size']
+    plt.rcParams['axes.titlesize'] = 1.1 * plt.rcParams['font.size']
+    plt.rcParams['legend.fontsize'] = plt.rcParams['font.size']
+    plt.rcParams['xtick.labelsize'] = plt.rcParams['font.size']
+    plt.rcParams['ytick.labelsize'] = plt.rcParams['font.size']
 
 
 # init_plotting(7,4)
@@ -40,20 +41,21 @@ path = 'cc-full'
 
 L = []
 for i in range(50):
-  data = pickle.load(open(path + '/snapshots-cc-full-' + str(i) + '.pkl', 'rb'))
-  print '%d, %f, %s' % (i, data['best_f'][-1], str(data['best_P'][-1]))
+    data = pickle.load(
+        open(path + '/snapshots-cc-full-' + str(i) + '.pkl', 'rb'))
+    print '%d, %f, %s' % (i, data['best_f'][-1], str(data['best_P'][-1]))
 
-  # nfe = data['nfe']
-  # best_f = np.array(data['best_f'])
-  # if best_f[-1] < 10:
-  #   L.append(s)
+    # nfe = data['nfe']
+    # best_f = np.array(data['best_f'])
+    # if best_f[-1] < 10:
+    #   L.append(s)
 
 # print L
-  # print '%s, %f, %s' % (s, best_f[-1], data['best_P'][-1]) # to see tree logic
+    # print '%s, %f, %s' % (s, best_f[-1], data['best_P'][-1]) # to see tree logic
 
-  # results = model.f(data['best_P'][-1])
-  # print results
-  # plt.loglog(nfe, best_f / DDP, linewidth=0.5, color='steelblue')
+    # results = model.f(data['best_P'][-1])
+    # print results
+    # plt.loglog(nfe, best_f / DDP, linewidth=0.5, color='steelblue')
 
 # plt.xlabel('NFE')
 # plt.ylabel('J / J$^*$')
@@ -98,7 +100,7 @@ for i in range(50):
 # flierprops = dict(marker='o', markersize=5)
 
 # # also want to show validation here as a grouped plot
-# sns.boxplot(data=df, x='depth', y='J', width=0.5, 
+# sns.boxplot(data=df, x='depth', y='J', width=0.5,
 #             saturation=0.5, color='steelblue') #hue='type' for validation
 # plt.gca().set_xticklabels(range(1,9))
 # plt.xlabel('Max Tree Depth')
