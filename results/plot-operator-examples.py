@@ -6,23 +6,26 @@ from opt import *
 import folsom
 
 
-algorithm = PTreeOpt(folsom.f, 
-                    feature_bounds = [[0,1000], [1,365], [0,300]],
-                    feature_names = ['Storage', 'Day', 'TDI'],
-                    discrete_actions = True,
-                    action_names = ['Release_Demand', 'Hedge_80', 'Hedge_50', 'Flood_Control'],
-                    mu = 10,
-                    cx_prob = 0.70,
-                    population_size = 50,
-                    max_depth = 4
-                    )
+algorithm = PTreeOpt(folsom.f,
+                     feature_bounds=[[0, 1000], [1, 365], [0, 300]],
+                     feature_names=['Storage', 'Day', 'TDI'],
+                     discrete_actions=True,
+                     action_names=['Release_Demand', 'Hedge_80',
+                                   'Hedge_50', 'Flood_Control'],
+                     mu=10,
+                     cx_prob=0.70,
+                     population_size=50,
+                     max_depth=4
+                     )
 
-snapshots = pickle.load(open('results/historical-training/snapshots-depth-3-seed-0.pkl', 'rb'))
+snapshots = pickle.load(
+    open('results/historical-training/snapshots-depth-3-seed-0.pkl', 'rb'))
 
 P1 = snapshots['best_P'][-1]
 # print P1
 
-snapshots = pickle.load(open('results/historical-training/snapshots-depth-3-seed-18.pkl', 'rb'))
+snapshots = pickle.load(
+    open('results/historical-training/snapshots-depth-3-seed-18.pkl', 'rb'))
 
 # P2 = snapshots['best_P'][-1]
 # print P2
@@ -49,4 +52,4 @@ snapshots = pickle.load(open('results/historical-training/snapshots-depth-3-seed
 
 
 # PRUNING PLOTS
-T = algorithm.random_tree() # baked in
+T = algorithm.random_tree()  # baked in

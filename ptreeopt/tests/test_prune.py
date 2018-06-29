@@ -1,4 +1,4 @@
-import numpy as np 
+import numpy as np
 import matplotlib.pyplot as plt
 
 from tree import *
@@ -13,12 +13,11 @@ from opt import *
 # print T
 
 # TEST 2: right subtree contains a value less than current node
-L = [[0,20], [1,5], [1,15], ['A'], ['B'], ['C'], [0,15], ['D'], ['E']]
+L = [[0, 20], [1, 5], [1, 15], ['A'], ['B'], ['C'], [0, 15], ['D'], ['E']]
 T = PTree(L)
 print T
 T.prune()
 print T
-
 
 
 # # algorithm = PTreeOpt()

@@ -19,8 +19,6 @@ import pandas as pd
 # P.graphviz_export('../figs/fig-4-hist-results/hist-opt.svg')
 
 
-
-
 # CC selected trees
 # want to highlight just a few
 # for the scatter plot example
@@ -39,7 +37,6 @@ import pandas as pd
 #   P.graphviz_export('../figs/fig-6-cc-results/tree-' + s + '.svg')
 
 
-
 # cc-full tree (robust policy)
 snapshots = pickle.load(open('cc-full/snapshots-cc-full-4.pkl', 'rb'))
 P = snapshots['best_P'][-1]
@@ -47,15 +44,12 @@ print str(P)
 P.graphviz_export('../figs/fig-7-cc-full-ts/cc-full-tree.svg')
 
 
-
-
-
 # print P
 # df = folsom.f(P, mode='simulation')
 # df.policy.ix[0] = df.policy.ix[1]
 
 # to show historical fit
-# plt.figure(figsize=(10, 3)) 
+# plt.figure(figsize=(10, 3))
 # folsom.plot_results(df)
 
 # def pos_sq(x):

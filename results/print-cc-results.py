@@ -6,17 +6,18 @@ import pandas as pd
 from matplotlib.ticker import ScalarFormatter
 # http://stackoverflow.com/questions/21920233/matplotlib-log-scale-tick-label-number-formatting
 
-def init_plotting(w,h):
-  sns.set_style('whitegrid')
-  plt.rcParams['figure.figsize'] = (w,h)
-  plt.rcParams['font.size'] = 13
-  plt.rcParams['font.family'] = 'OfficinaSanITCBoo'
-  # plt.rcParams['font.weight'] = 'bold'
-  plt.rcParams['axes.labelsize'] = 1.1*plt.rcParams['font.size']
-  plt.rcParams['axes.titlesize'] = 1.1*plt.rcParams['font.size']
-  plt.rcParams['legend.fontsize'] = plt.rcParams['font.size']
-  plt.rcParams['xtick.labelsize'] = plt.rcParams['font.size']
-  plt.rcParams['ytick.labelsize'] = plt.rcParams['font.size']
+
+def init_plotting(w, h):
+    sns.set_style('whitegrid')
+    plt.rcParams['figure.figsize'] = (w, h)
+    plt.rcParams['font.size'] = 13
+    plt.rcParams['font.family'] = 'OfficinaSanITCBoo'
+    # plt.rcParams['font.weight'] = 'bold'
+    plt.rcParams['axes.labelsize'] = 1.1 * plt.rcParams['font.size']
+    plt.rcParams['axes.titlesize'] = 1.1 * plt.rcParams['font.size']
+    plt.rcParams['legend.fontsize'] = plt.rcParams['font.size']
+    plt.rcParams['xtick.labelsize'] = plt.rcParams['font.size']
+    plt.rcParams['ytick.labelsize'] = plt.rcParams['font.size']
 
 
 # init_plotting(7,4)
@@ -32,7 +33,8 @@ path = 'cc-opt'
 
 # depth = 4
 # seeds = 50
-scenarios = pd.read_csv('../folsom/data/folsom-cc-inflows.csv', index_col=0).columns
+scenarios = pd.read_csv(
+    '../folsom/data/folsom-cc-inflows.csv', index_col=0).columns
 # scenarios = ['bcc-csm1-1-m_rcp45_r1i1p1']
 
 # model = Folsom('data/folsom-cc-inflows.csv', sd='1999-10-01', ed='2099-09-30',
@@ -40,19 +42,19 @@ scenarios = pd.read_csv('../folsom/data/folsom-cc-inflows.csv', index_col=0).col
 
 L = []
 for s in scenarios:
-  data = pickle.load(open(path + '/snapshots-cc-' + s + '.pkl', 'rb'))
+    data = pickle.load(open(path + '/snapshots-cc-' + s + '.pkl', 'rb'))
 
-  nfe = data['nfe']
-  best_f = np.array(data['best_f'])
-  if best_f[-1] < 10:
-    L.append(s)
+    nfe = data['nfe']
+    best_f = np.array(data['best_f'])
+    if best_f[-1] < 10:
+        L.append(s)
 
 print L
-  # print '%s, %f, %s' % (s, best_f[-1], data['best_P'][-1]) # to see tree logic
+# print '%s, %f, %s' % (s, best_f[-1], data['best_P'][-1]) # to see tree logic
 
-  # results = model.f(data['best_P'][-1])
-  # print results
-  # plt.loglog(nfe, best_f / DDP, linewidth=0.5, color='steelblue')
+# results = model.f(data['best_P'][-1])
+# print results
+# plt.loglog(nfe, best_f / DDP, linewidth=0.5, color='steelblue')
 
 # plt.xlabel('NFE')
 # plt.ylabel('J / J$^*$')
@@ -97,7 +99,7 @@ print L
 # flierprops = dict(marker='o', markersize=5)
 
 # # also want to show validation here as a grouped plot
-# sns.boxplot(data=df, x='depth', y='J', width=0.5, 
+# sns.boxplot(data=df, x='depth', y='J', width=0.5,
 #             saturation=0.5, color='steelblue') #hue='type' for validation
 # plt.gca().set_xticklabels(range(1,9))
 # plt.xlabel('Max Tree Depth')
