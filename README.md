@@ -4,7 +4,7 @@ Heuristic policy search for control of dynamic systems. Uses genetic programming
 
 **Requirements:** [NumPy](http://www.numpy.org/), [PyGraphviz](https://pygraphviz.github.io/) (optional). The example model also uses [pandas](http://pandas.pydata.org/) and [Matplotlib](http://matplotlib.org/) but these are not strictly required.
 
-Still in active development, so far only tested with Python 2.7. Contributions and bug reports welcome!
+Tested with Python 2.7 and 3.x. Contributions and bug reports welcome!
 
 **Citation:** [Link to paper](http://www.sciencedirect.com/science/article/pii/S1364815217306540)
 ```
@@ -76,4 +76,4 @@ pickle.dump(snapshots, open('snapshots.pkl', 'wb'))
 Use `algorithm.run(..., parallel=True)` to run in parallel (requires [mpi4py](http://pythonhosted.org/mpi4py/)). Then run `mpirun python main.py` on the command line or in a cluster job script. This is "generational" parallelization, meaning that the number of processors should not exceed the population size.
 
 ### License
-Copyright (C) 2017 Jon Herman and Matteo Giuliani. Released under the [MIT license](LICENSE.md).
+Copyright (C) 2017-18 Jon Herman and Matteo Giuliani. Released under the [MIT license](LICENSE.md).
