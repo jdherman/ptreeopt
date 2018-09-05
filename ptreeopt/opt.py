@@ -11,7 +11,8 @@ class PTreeOpt(object):
     def __init__(self, f, feature_bounds, discrete_actions=False,
                  action_bounds=None, action_names=None, population_size=100, 
                  mu=15, max_depth=4, mut_prob=0.9, cx_prob=0.9,
-                 feature_names=None, multiobj=False, epsilons=None):
+                 feature_names=None, discrete_features=None,
+                 multiobj=False, epsilons=None):
 
         self.f = f
         self.num_features = len(feature_bounds)
@@ -25,11 +26,16 @@ class PTreeOpt(object):
         self.mut_prob = mut_prob
         self.cx_prob = cx_prob
         self.feature_names = feature_names
+        self.discrete_features = discrete_features
         self.multiobj = multiobj
         self.epsilons = epsilons
 
         if feature_names is not None and len(feature_names) != len(feature_bounds):
             raise ValueError(('feature_names and feature_bounds '
+                              'must be the same length.'))
+
+        if discrete_features is not None and len(discrete_features) != len(feature_bounds):
+            raise ValueError(('discrete_features and feature_bounds '
                               'must be the same length.'))
 
         if discrete_actions:
@@ -182,11 +188,15 @@ class PTreeOpt(object):
 
             else:
                 x = np.random.choice(self.num_features)
-                v = np.random.uniform(*self.feature_bounds[x])
+                low, high = self.feature_bounds[x]
+                if self.discrete_features[x]:
+                    v = np.random.randint(low, high+1) # make inclusive
+                else:
+                    v = np.random.uniform(low, high)
                 L.append([x, v])
                 S += [current_depth + 1] * 2
 
-        T = PTree(L, self.feature_names)
+        T = PTree(L, self.feature_names, self.discrete_features)
         T.prune()
         return T
 
@@ -213,8 +223,12 @@ class PTreeOpt(object):
         for item in P.L:
             if np.random.rand() < self.mut_prob:
                 if item.is_feature:
-                    item.threshold = self.bounded_gaussian(
-                        item.threshold, self.feature_bounds[item.index])
+                    low, high = self.feature_bounds[item.index]
+                    if item.is_discrete:
+                        item.threshold = np.random.randint(low, high+1)
+                    else:
+                        item.threshold = self.bounded_gaussian(
+                            item.threshold, [low, high])
                 elif mutate_actions:
                     if self.discrete_actions:
                         item.value = str(np.random.choice(self.action_names))

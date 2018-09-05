@@ -14,10 +14,14 @@ class Feature(Node):
         self.index, self.threshold = contents
         self.name = 'X[%d]' % self.index
         self.is_feature = True
+        self.is_discrete = False
         super(Feature, self).__init__()
 
     def __str__(self):
-        return '%s < %d' % (self.name, self.threshold)
+        if self.is_discrete:
+            return '%s == %d' % (self.name, self.threshold)
+        else:
+            return '%s < %d' % (self.name, self.threshold)
 
 
 class Action(Node):
@@ -36,7 +40,7 @@ class Action(Node):
 
 class PTree(object):
 
-    def __init__(self, L, feature_names=None):
+    def __init__(self, L, feature_names=None, discrete_features=None):
         self.L = []
 
         for item in L:
@@ -44,6 +48,8 @@ class PTree(object):
                 f = Feature(item)
                 if feature_names:
                     f.name = feature_names[f.index]
+                if discrete_features:
+                    f.is_discrete = discrete_features[f.index]
                 self.L.append(f)
             else:
                 self.L.append(Action(item))
@@ -98,7 +104,8 @@ class PTree(object):
         rules = []
 
         while node.is_feature:
-            if states[node.index] < node.threshold:
+            if (node.is_discrete and states[node.index] == node.threshold) \
+                or (not node.is_discrete and states[node.index] < node.threshold):
                 rules.append((node.name, node.threshold, True))
                 node = node.l
             else:
@@ -171,7 +178,8 @@ class PTree(object):
 
             child = self[j]
 
-            if child.is_feature and child.index == current.index:
+            if child.is_feature and not child.is_discrete \
+               and child.index == current.index:
 
                 if mode == 'right' and child.threshold < current.threshold:
                     rsub = self.get_subtree(self.get_subtree(j + 1).stop)
