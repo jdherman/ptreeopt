@@ -128,6 +128,9 @@ class PTreeOpt(object):
 
         while nfe < max_nfe:
 
+            for P in self.population:
+                P.clear_count() # reset action counts to zero
+
             # evaluate objectives
             if not parallel:
                 self.objectives = np.array(
@@ -145,6 +148,9 @@ class PTreeOpt(object):
 
                 if is_master:
                     self.objectives = np.concatenate(objs)  # flatten list
+
+            for P in self.population:
+                P.normalize_count() # convert action count to percent
 
             nfe += self.popsize
 

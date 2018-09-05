@@ -29,13 +29,14 @@ class Action(Node):
     def __init__(self, contents):
         self.value = contents[0]
         self.is_feature = False
+        self.count = 0
         super(Action, self).__init__()
 
     def __str__(self):
         try:
-            return '%0.3f' % self.value
+            return '%0.3f (%0.2f%%)' % (self.value, self.count)
         except TypeError:
-            return self.value
+            return '%s (%0.2f%%)' % (self.value, self.count)
 
 
 class PTree(object):
@@ -113,7 +114,21 @@ class PTree(object):
                 rules.append((node.name, node.threshold, False))
                 node = node.r
 
+        node.count += 1 # track number of action occurrences
         return (node.value, rules)
+
+    def clear_count(self):
+        # reset action counts to zero
+        for node in self.L:
+            if not node.is_feature:
+                node.count = 0
+
+    def normalize_count(self):
+        # convert action counts to percents
+        s = sum([node.count for node in self.L if not node.is_feature])
+        for node in self.L:
+            if not node.is_feature:
+                node.count /= s/100
 
     def get_subtree(self, begin):
         # Adapted from DEAP: return the indices of the subtree
