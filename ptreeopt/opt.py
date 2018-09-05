@@ -188,11 +188,7 @@ class PTreeOpt(object):
 
             else:
                 x = np.random.choice(self.num_features)
-                low, high = self.feature_bounds[x]
-                if self.discrete_features[x]:
-                    v = np.random.randint(low, high+1) # make inclusive
-                else:
-                    v = np.random.uniform(low, high)
+                v = np.random.uniform(*self.feature_bounds[x])
                 L.append([x, v])
                 S += [current_depth + 1] * 2
 

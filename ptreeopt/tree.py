@@ -50,6 +50,7 @@ class PTree(object):
                     f.name = feature_names[f.index]
                 if discrete_features:
                     f.is_discrete = discrete_features[f.index]
+                    f.threshold = int(round(f.threshold)) # round
                 self.L.append(f)
             else:
                 self.L.append(Action(item))
