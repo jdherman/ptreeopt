@@ -181,31 +181,50 @@ class PTree(object):
         self.build()
 
     def _prune_subtree(self, i, s, mode):
-        '''Removes illogical subtree relationships.
-        
-        If a feature in the right subtree has a threshold less than current,
-        Replace it with its own right subtree. If a feature in the left
-        subtree has a threshold greater than current, replace it with its left
-        subtree.'''
+        # Removes illogical subtree relationships by hoisting subtrees
 
         current = self[i]
 
+        def _hoist_subtree(j, side):
+            if side == 'r':
+                sub = self.get_subtree(self.get_subtree(j + 1).stop)
+            else:
+                sub = self.get_subtree(j + 1)
+            self[self.get_subtree(j)] = self[sub]
+
+        # loop over nodes in a subtree, represented by a list slice
         for j in range(s.start, s.stop):
 
             child = self[j]
 
-            if child.is_feature and not child.is_discrete \
-               and child.index == current.index:
+            if child.is_feature and child.index == current.index:
 
-                if mode == 'right' and child.threshold < current.threshold:
-                    rsub = self.get_subtree(self.get_subtree(j + 1).stop)
-                    self[self.get_subtree(j)] = self[rsub]
-                    return True
+                if child.is_discrete: # discrete features
+                    '''If a feature in the right subtree has equal threshold, 
+                    it's false. If feature in left subtree has a not-equal 
+                    threshold, it's false. Both cases: replace with right subtree'''
+                    if (mode == 'right' and child.threshold == current.threshold) \
+                    or (mode == 'left' and child.threshold != current.threshold):
+                        _hoist_subtree(j, 'r')
+                        return True
 
-                elif mode == 'left' and child.threshold > current.threshold:
-                    lsub = self.get_subtree(j + 1)
-                    self[self.get_subtree(j)] = self[lsub]
-                    return True
+                    '''If a feature in the left subtree has equal threshold,
+                    we already know it's true (replace with left subtree)'''
+                    if (mode == 'left' and child.threshold == current.threshold):
+                        _hoist_subtree(j, 'l')
+                        return True
+
+                else: # continuous features
+                    '''If a feature in the right subtree has a threshold 
+                    less than current,replace it with its own right subtree'''
+                    if (mode == 'right' and child.threshold < current.threshold):
+                        _hoist_subtree(j, 'r')
+                        return True
+                    '''If a feature in the left subtree has a threshold greater
+                     than current, replace it with its left subtree'''
+                    if (mode == 'left' and child.threshold > current.threshold):
+                        _hoist_subtree(j, 'l')
+                        return True
 
         return False
 
