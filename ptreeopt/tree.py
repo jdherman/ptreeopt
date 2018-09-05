@@ -29,7 +29,7 @@ class Action(Node):
     def __init__(self, contents):
         self.value = contents[0]
         self.is_feature = False
-        self.count = 0
+        self.count = -1
         super(Action, self).__init__()
 
     def __str__(self):
@@ -173,7 +173,7 @@ class PTree(object):
 
             if self._prune_subtree(i, r, mode='right') or \
                self._prune_subtree(i, l, mode='left') or \
-               self._prune_duplicate_actions(i, l, r):
+               self._prune_actions(i, l, r):
                 continue
 
             i += 1
@@ -228,16 +228,23 @@ class PTree(object):
 
         return False
 
-    def _prune_duplicate_actions(self, i, l, r):
-
+    def _prune_actions(self, i, l, r):
+        # two cases: prune duplicate actions, and unused actions
         lchild = self[l][0]
         rchild = self[r][0]
+        pruned = False
 
         if not lchild.is_feature and \
-           not rchild.is_feature and \
-           i != 0 and \
-           lchild.value == rchild.value:
-            self.L[i] = lchild
+            not rchild.is_feature and i != 0:
+
+            if lchild.value == rchild.value or rchild.count == 0:
+                self.L[i] = lchild
+                pruned = True
+            elif lchild.count == 0:
+                self.L[i] = rchild
+                pruned = True
+
+        if pruned:
             self.L[r] = []  # MUST delete right one first
             self.L[l] = []
             return True
