@@ -1,7 +1,9 @@
 import numpy as np
 from folsom import Folsom
 from ptreeopt import PTreeOpt
+import pickle
 
+# Example to run optimization and save results
 np.random.seed(17)
 
 model = Folsom('folsom/data/folsom-daily-w2016.csv',
@@ -19,5 +21,6 @@ algorithm = PTreeOpt(model.f,
                      max_depth=5
                      )
 
-
+# With only 1000 function evaluations this will not be very good
 snapshots = algorithm.run(max_nfe=1000, log_frequency=100)
+pickle.dump(snapshots, open('example-results.pkl', 'wb'))

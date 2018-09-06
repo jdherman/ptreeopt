@@ -251,34 +251,3 @@ class PTree(object):
 
         return False
 
-    # also add "states" to do colors
-
-    def graphviz_export(self, filename, dpi=300):
-
-        import pygraphviz as pgv
-        G = pgv.AGraph(directed=True)
-        G.node_attr['shape'] = 'box'
-        # G.graph_attr['size'] = '2!,2!' # use for animations only
-        # G.graph_attr['dpi'] = str(dpi)
-
-        parent = self.root
-        G.add_node(str(parent))
-        S = []
-
-        while parent.is_feature or len(S) > 0:
-            if parent.is_feature:
-                S.append(parent)
-                child = parent.l
-                label = 'T'
-
-            else:
-                parent = S.pop()
-                child = parent.r
-                label = 'F'
-
-            G.add_node(str(child))
-            G.add_edge(str(parent), str(child), label=label)
-            parent = child
-
-        G.layout(prog='dot')
-        G.draw(filename)
