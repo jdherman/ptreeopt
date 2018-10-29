@@ -58,11 +58,13 @@ class PTreeOpt(object):
 
         # selection: find index numbers for parents
         if not self.multiobj:
+
             parents = self.select_truncation(self.objectives)
 
             if self.best_f is None or self.objectives[parents[0]] < self.best_f:
                 self.best_f = self.objectives[parents[0]]
-                self.best_P = self.population[parents[0]]
+                self.best_P = copy.deepcopy(self.population[parents[0]])
+
         else:
             parents = [self.binary_tournament(self.population, self.objectives)
                        for _ in range(self.mu)]
@@ -128,8 +130,9 @@ class PTreeOpt(object):
 
         while nfe < max_nfe:
 
-            for P in self.population:
-                P.clear_count() # reset action counts to zero
+            if is_master:
+                for P in self.population:
+                    P.clear_count() # reset action counts to zero
 
             # evaluate objectives
             if not parallel:
@@ -144,13 +147,16 @@ class PTreeOpt(object):
                 local_Ps = comm.scatter(chunks, root=0)
                 local_fs = [self.f(P) for P in local_Ps]
                 objs = comm.gather(local_fs, root=0)
+                temp_pop = comm.gather(local_Ps, root=0)
                 comm.barrier()
 
                 if is_master:
                     self.objectives = np.concatenate(objs)  # flatten list
+                    self.population = np.concatenate(temp_pop)
 
-            for P in self.population:
-                P.normalize_count() # convert action count to percent
+            if is_master:
+                for P in self.population:
+                    P.normalize_count() # convert action count to percent
 
             nfe += self.popsize
 
