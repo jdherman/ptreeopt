@@ -3,13 +3,25 @@ from folsom import Folsom
 from ptreeopt import PTreeOpt
 import pickle
 
+from ptreeopt.executors import MultiprocessingExecutor
+
 # Example to run optimization and save results
 np.random.seed(17)
+
+
 
 model = Folsom('folsom/data/folsom-daily-w2016.csv',
                sd='1995-10-01', ed='2016-09-30', use_tocs=False)
 
-algorithm = PTreeOpt(model.f,
+
+def run(P):
+    # model.f has side effects: it changes values on P
+    # so for parallel running with multiprocessing, we want to return
+    # also the modified P
+    results = model.f(P)
+    return P, results
+
+algorithm = PTreeOpt(run,
                      feature_bounds=[[0, 1000], [1, 365], [0, 300]],
                      feature_names=['Storage', 'Day', 'Inflow'],
                      discrete_actions=True,
@@ -22,5 +34,8 @@ algorithm = PTreeOpt(model.f,
                      )
 
 # With only 1000 function evaluations this will not be very good
-snapshots = algorithm.run(max_nfe=1000, log_frequency=100)
-pickle.dump(snapshots, open('example-results.pkl', 'wb'))
+with MultiprocessingExecutor(algorithm, max_workers=2) as executor:
+    executor.run(1000, 10)
+
+# snapshots = algorithm.run(max_nfe=1000, log_frequency=100, parallel=True)
+# pickle.dump(snapshots, open('example-results.pkl', 'wb'))
