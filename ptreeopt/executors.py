@@ -9,7 +9,12 @@ import datetime
 import time
 import numpy as np
 
-class MultiprocessingExecutor(object):
+try:
+    from mpi4py.futures import MPIPoolExecutor
+except ImportError as e:
+    print(e)
+
+class BaseExecutor(object):
     '''
     
     Parameters
@@ -21,32 +26,23 @@ class MultiprocessingExecutor(object):
     Attributes
     ----------
     algorithm : PTreeOpt instance
-    pool : concurrent.futures.ProcessPoolExecutor instance
-    
     
     '''
     
     def __init__(self, algorithm, **kwargs):
         
         self.algorithm = algorithm
-        self.pool = ProcessPoolExecutor(**kwargs)
         
     def __enter__(self):
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.pool.shutdown(wait=True)
         return False
         
+    def map(self, population):
+        raise NotImplementedError
+        
     def run(self, max_nfe, log_frequency):
-
-#         if parallel:
-#             from mpi4py import MPI
-#             comm = MPI.COMM_WORLD
-#             size = comm.Get_size()
-#             rank = comm.Get_rank()
-
-#         is_master = (not parallel) or (parallel and rank == 0)
         start_time = time.time()
         nfe, last_log = 0, 0
 
@@ -59,22 +55,20 @@ class MultiprocessingExecutor(object):
         if log_frequency:
             snapshots = {'nfe': [], 'time': [], 'best_f': [], 'best_P': []}
         else:
-            self.population = None
+            self.algorithm.population = None
 
         while nfe < max_nfe:
+            population = self.algorithm.population
+            
             for member in population:
                 member.clear_count() # reset action counts to zero
 
-            # evaluate objectives
-            
-            results = self.pool.map(self.algorithm.f, population)
-            population, objectives = list(zip(*results))
-            
-            objectives = np.asarray(objectives)
+            # evaluate objectives            
+            population, objectives = self.map(population)
             
             # TODO:: should not be attributes of algorithm
             self.algorithm.objectives = objectives
-            self.algorithm.population
+            self.algorithm.population = np.asarray(population)
 
             for member in population:
                 member.normalize_count() # convert action count to percent
@@ -100,3 +94,70 @@ class MultiprocessingExecutor(object):
                 last_log = nfe
 
         return snapshots
+
+
+class MultiprocessingExecutor(BaseExecutor):
+    '''
+    
+    Parameters
+    ----------
+    algorithm : PTreeOpt instance
+    kwargs : all kwargs will be passed on to
+             concurrent.futures.ProcessPoolExecutor
+    
+    Attributes
+    ----------
+    algorithm : PTreeOpt instance
+    pool : concurrent.futures.ProcessPoolExecutor instance
+    
+    
+    '''
+    def __init__(self, algorithm, **kwargs):
+        super(MultiprocessingExecutor, self).__init__(algorithm)
+        self.pool = ProcessPoolExecutor(**kwargs)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.pool.shutdown(wait=True)
+        return False
+    
+    def map(self, population):
+        results = self.pool.map(self.algorithm.f, population)
+        population, objectives = list(zip(*results))
+        
+        objectives = np.asarray(objectives)
+        
+        return population, objectives
+    
+
+class MPIExecutor(BaseExecutor):
+    '''
+    
+    Parameters
+    ----------
+    algorithm : PTreeOpt instance
+    kwargs : all kwargs will be passed on to
+             concurrent.futures.ProcessPoolExecutor
+    
+    Attributes
+    ----------
+    algorithm : PTreeOpt instance
+    pool : concurrent.futures.ProcessPoolExecutor instance
+    
+    
+    '''
+    
+    def __init__(self, algorithm, **kwargs):
+        super(MPIExecutor, self).__init__(algorithm)
+        self.pool = MPIPoolExecutor(**kwargs)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.pool.shutdown(wait=True)
+        return False
+    
+    def map(self, population):
+        results = self.pool.map(self.algorithm.f, population)
+        population, objectives = list(zip(*results))
+        
+        objectives = np.asarray(objectives)
+        
+        return population, objectives

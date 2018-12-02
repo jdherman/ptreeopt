@@ -3,7 +3,7 @@ from folsom import Folsom
 from ptreeopt import PTreeOpt
 import pickle
 
-from ptreeopt.executors import MultiprocessingExecutor
+from ptreeopt.executors import MultiprocessingExecutor, MPIExecutor
 
 # Example to run optimization and save results
 np.random.seed(17)
@@ -33,9 +33,11 @@ algorithm = PTreeOpt(run,
                      max_depth=5
                      )
 
-# With only 1000 function evaluations this will not be very good
-with MultiprocessingExecutor(algorithm, max_workers=2) as executor:
-    executor.run(1000, 10)
+if __name__ == '__main__':
+        
+    # With only 1000 function evaluations this will not be very good
+    with MPIExecutor(algorithm, max_workers=4) as executor:
+        executor.run(1000, 10)
 
 # snapshots = algorithm.run(max_nfe=1000, log_frequency=100, parallel=True)
 # pickle.dump(snapshots, open('example-results.pkl', 'wb'))
