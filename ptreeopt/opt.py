@@ -1,12 +1,47 @@
 from __future__ import division
-import numpy as np
-import time
-import datetime
-import copy
-from .tree import *
 
+import copy
+import functools
+
+import numpy as np
+
+from .tree import PTree
+from ptreeopt.executors import SequentialExecutor
+
+def function_runner(func, solution):
+    # model.f has side effects: it changes values on P
+    # so for parallel running  we want to return
+    # also the modified P
+
+    results = func(solution)
+    return solution, results
 
 class PTreeOpt(object):
+    '''
+    
+    Parameters
+    ----------
+    f : callable
+    feature_bounds : 
+    discrete_actions : boolean, optional
+    action_bounds : 
+    action_names : 
+    population size : int, optional
+    mu : float, optional
+    max_depth : int, optional
+    mut_prob : float, optional
+    cx_prob : float, optional
+    feature_names : 
+    discrete_features : 
+    multiobj : bool, optional
+    epsilons : 
+    
+    
+    Raises
+    ------
+    ValueError
+    
+    '''
 
     def __init__(self, f, feature_bounds, discrete_actions=False,
                  action_bounds=None, action_names=None, population_size=100, 
@@ -14,7 +49,7 @@ class PTreeOpt(object):
                  feature_names=None, discrete_features=None,
                  multiobj=False, epsilons=None):
 
-        self.f = f
+        self.f = functools.partial(function_runner, f)
         self.num_features = len(feature_bounds)
         self.feature_bounds = feature_bounds
         self.discrete_actions = discrete_actions
@@ -30,11 +65,13 @@ class PTreeOpt(object):
         self.multiobj = multiobj
         self.epsilons = epsilons
 
-        if feature_names is not None and len(feature_names) != len(feature_bounds):
+        if feature_names is not None and\
+           len(feature_names) != len(feature_bounds):
             raise ValueError(('feature_names and feature_bounds '
                               'must be the same length.'))
 
-        if discrete_features is not None and len(discrete_features) != len(feature_bounds):
+        if discrete_features is not None and\
+           len(discrete_features) != len(feature_bounds):
             raise ValueError(('discrete_features and feature_bounds '
                               'must be the same length.'))
 
@@ -108,82 +145,84 @@ class PTreeOpt(object):
             child.prune()
             self.population[i] = child
 
-    def run(self, max_nfe=100, parallel=False, log_frequency=None):
+    def run(self, max_nfe=100, log_frequency=None):
+        with SequentialExecutor(self)  as executor:
+            return executor.run(max_nfe, log_frequency)
 
-        if parallel:
-            from mpi4py import MPI
-            comm = MPI.COMM_WORLD
-            size = comm.Get_size()
-            rank = comm.Get_rank()
-
-        is_master = (not parallel) or (parallel and rank == 0)
-        start_time = time.time()
-        nfe, last_log = 0, 0
-
-        if is_master:
-            self.population = np.array(
-                [self.random_tree() for _ in range(self.popsize)])
-            self.best_f = None
-            self.best_P = None
-
-            if log_frequency:
-                snapshots = {'nfe': [], 'time': [], 'best_f': [], 'best_P': []}
-        else:
-            self.population = None
-
-        while nfe < max_nfe:
-
-            if is_master:
-                for P in self.population:
-                    P.clear_count() # reset action counts to zero
-
-            # evaluate objectives
-            if not parallel:
-                self.objectives = np.array(
-                    [self.f(P) for P in self.population])
-            else:
-                if is_master:
-                    chunks = np.array_split(self.population, size)
-                else:
-                    chunks = None
-
-                local_Ps = comm.scatter(chunks, root=0)
-                local_fs = [self.f(P) for P in local_Ps]
-                objs = comm.gather(local_fs, root=0)
-                temp_pop = comm.gather(local_Ps, root=0)
-                comm.barrier()
-
-                if is_master:
-                    self.objectives = np.concatenate(objs)  # flatten list
-                    self.population = np.concatenate(temp_pop)
-
-            if is_master:
-                for P in self.population:
-                    P.normalize_count() # convert action count to percent
-
-            nfe += self.popsize
-
-            if is_master:
-                self.iterate()
-
-                if log_frequency is not None and nfe >= last_log + log_frequency:
-                    elapsed = datetime.timedelta(
-                        seconds=time.time() - start_time).seconds
-
-                    if not self.multiobj:
-                        print('%d\t%s\t%0.3f\t%s' %
-                              (nfe, elapsed, self.best_f, self.best_P))
-                    else:
-                        print('# nfe = %d\n%s' % (nfe, self.best_f))
-                        print(self.best_f.shape)
-                    snapshots['nfe'].append(nfe)
-                    snapshots['time'].append(elapsed)
-                    snapshots['best_f'].append(self.best_f)
-                    snapshots['best_P'].append(self.best_P)
-                    last_log = nfe
-
-        if is_master and log_frequency:
-            return snapshots
+#         if parallel:
+#             from mpi4py import MPI
+#             comm = MPI.COMM_WORLD
+#             size = comm.Get_size()
+#             rank = comm.Get_rank()
+# 
+#         is_master = (not parallel) or (parallel and rank == 0)
+#         start_time = time.time()
+#         nfe, last_log = 0, 0
+# 
+#         if is_master:
+#             self.population = np.array(
+#                 [self.random_tree() for _ in range(self.popsize)])
+#             self.best_f = None
+#             self.best_P = None
+# 
+#             if log_frequency:
+#                 snapshots = {'nfe': [], 'time': [], 'best_f': [], 'best_P': []}
+#         else:
+#             self.population = None
+# 
+#         while nfe < max_nfe:
+# 
+#             if is_master:
+#                 for P in self.population:
+#                     P.clear_count() # reset action counts to zero
+# 
+#             # evaluate objectives
+#             if not parallel:
+#                 self.objectives = np.array(
+#                     [self.f(P) for P in self.population])
+#             else:
+#                 if is_master:
+#                     chunks = np.array_split(self.population, size)
+#                 else:
+#                     chunks = None
+# 
+#                 local_Ps = comm.scatter(chunks, root=0)
+#                 local_fs = [self.f(P) for P in local_Ps]
+#                 objs = comm.gather(local_fs, root=0)
+#                 temp_pop = comm.gather(local_Ps, root=0)
+#                 comm.barrier()
+# 
+#                 if is_master:
+#                     self.objectives = np.concatenate(objs)  # flatten list
+#                     self.population = np.concatenate(temp_pop)
+# 
+#             if is_master:
+#                 for P in self.population:
+#                     P.normalize_count() # convert action count to percent
+# 
+#             nfe += self.popsize
+# 
+#             if is_master:
+#                 self.iterate()
+# 
+#                 if log_frequency is not None and nfe >= last_log + log_frequency:
+#                     elapsed = datetime.timedelta(
+#                         seconds=time.time() - start_time).seconds
+# 
+#                     if not self.multiobj:
+#                         print('%d\t%s\t%0.3f\t%s' %
+#                               (nfe, elapsed, self.best_f, self.best_P))
+#                     else:
+#                         print('# nfe = %d\n%s' % (nfe, self.best_f))
+#                         print(self.best_f.shape)
+#                     snapshots['nfe'].append(nfe)
+#                     snapshots['time'].append(elapsed)
+#                     snapshots['best_f'].append(self.best_f)
+#                     snapshots['best_P'].append(self.best_P)
+#                     last_log = nfe
+# 
+#         if is_master and log_frequency:
+#             return snapshots
 
     def random_tree(self, terminal_ratio=0.5):
         depth = np.random.randint(1, self.max_depth + 1)

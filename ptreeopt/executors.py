@@ -12,16 +12,16 @@ import numpy as np
 try:
     from mpi4py.futures import MPIPoolExecutor
 except ImportError as e:
-    print(e)
-
+    pass
+    
 class BaseExecutor(object):
     '''
     
     Parameters
     ----------
     algorithm : PTreeOpt instance
-    kwargs : all kwargs will be passed on to
-             concurrent.futures.ProcessPoolExecutor
+    kwargs : all kwargs will be passed on to the underlying executor
+            
     
     Attributes
     ----------
@@ -30,7 +30,6 @@ class BaseExecutor(object):
     '''
     
     def __init__(self, algorithm, **kwargs):
-        
         self.algorithm = algorithm
         
     def __enter__(self):
@@ -43,6 +42,19 @@ class BaseExecutor(object):
         raise NotImplementedError
         
     def run(self, max_nfe, log_frequency):
+        '''run algorithm
+        
+        Parameters
+        ----------
+        max_nfe: int
+        log_frequency : int
+        
+        
+        TODO:: what should be the return of run? snapshots, the final population?
+        
+        
+        '''
+        
         start_time = time.time()
         nfe, last_log = 0, 0
 
@@ -54,8 +66,6 @@ class BaseExecutor(object):
 
         if log_frequency:
             snapshots = {'nfe': [], 'time': [], 'best_f': [], 'best_P': []}
-        else:
-            self.algorithm.population = None
 
         while nfe < max_nfe:
             population = self.algorithm.population
@@ -136,7 +146,7 @@ class MPIExecutor(BaseExecutor):
     ----------
     algorithm : PTreeOpt instance
     kwargs : all kwargs will be passed on to
-             concurrent.futures.ProcessPoolExecutor
+             mpi4py.futures.MPIPoolExecutor
     
     Attributes
     ----------
@@ -156,6 +166,35 @@ class MPIExecutor(BaseExecutor):
     
     def map(self, population):
         results = self.pool.map(self.algorithm.f, population)
+        population, objectives = list(zip(*results))
+        
+        objectives = np.asarray(objectives)
+        
+        return population, objectives
+    
+class SequentialExecutor(BaseExecutor):
+    '''
+    
+    Parameters
+    ----------
+    algorithm : PTreeOpt instance
+    
+    Attributes
+    ----------
+    algorithm : PTreeOpt instance
+    pool : concurrent.futures.ProcessPoolExecutor instance
+    
+    
+    '''
+    
+    def __init__(self, algorithm , **kwargs):
+        super(SequentialExecutor, self).__init__(algorithm)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return False
+    
+    def map(self, population):
+        results = list(map(self.algorithm.f, population))
         population, objectives = list(zip(*results))
         
         objectives = np.asarray(objectives)
