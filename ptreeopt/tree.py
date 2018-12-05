@@ -1,4 +1,12 @@
 class Node(object):
+    '''
+    
+    Attributes
+    ----------
+    l : 
+    r : 
+    
+    '''
 
     def __init__(self):
         self.l = None
@@ -9,6 +17,18 @@ class Node(object):
 
 
 class Feature(Node):
+    '''
+    
+    Attributes
+    ----------
+    index : 
+    threshold :
+    name : str
+    is_feature : bool
+    is_discrete : bool
+    
+    
+    '''
 
     def __init__(self, contents):
         self.index, self.threshold = contents
@@ -40,6 +60,16 @@ class Action(Node):
 
 
 class PTree(object):
+    '''
+    
+    Attributes
+    ----------
+    L : list of Feature instances
+    root : 
+    
+    
+    
+    '''
 
     def __init__(self, L, feature_names=None, discrete_features=None):
         self.L = []

@@ -1,7 +1,9 @@
 from __future__ import division
 
 import copy
+import datetime
 import functools
+import time
 
 import numpy as np
 
@@ -17,7 +19,7 @@ def function_runner(func, solution):
     return solution, results
 
 class PTreeOpt(object):
-    '''
+    '''Algorithm for optimizing policy trees
     
     Parameters
     ----------
@@ -145,9 +147,72 @@ class PTreeOpt(object):
             child.prune()
             self.population[i] = child
 
-    def run(self, max_nfe=100, log_frequency=None):
-        with SequentialExecutor(self)  as executor:
-            return executor.run(max_nfe, log_frequency)
+    def run(self, max_nfe=100, log_frequency=None,
+            executor=SequentialExecutor()):
+        '''Run the optimization algorithm
+        
+        Parameters
+        ----------
+        max_nfe : int, optional
+        log_frequency :  int, optional
+        executor : subclass of BaseExecutor, optional
+        
+        Returns
+        -------
+        
+        '''
+
+
+        start_time = time.time()
+        nfe, last_log = 0, 0
+
+        population = np.array(
+            [self.random_tree() for _ in range(self.popsize)])
+        self.best_f = None
+        self.best_P = None
+        self.population = population
+
+        if log_frequency:
+            snapshots = {'nfe': [], 'time': [], 'best_f': [], 'best_P': []}
+
+        while nfe < max_nfe:
+            population = self.population
+            
+            for member in population:
+                member.clear_count() # reset action counts to zero
+
+            # evaluate objectives            
+            population, objectives = executor.map(self.f, population)
+            
+            # TODO:: should not be attributes of algorithm
+            self.objectives = objectives
+            self.population = np.asarray(population)
+
+            for member in population:
+                member.normalize_count() # convert action count to percent
+
+            nfe += self.popsize
+
+            self.iterate()
+
+            if log_frequency is not None and nfe >= last_log + log_frequency:
+                elapsed = datetime.timedelta(
+                    seconds=time.time() - start_time).seconds
+
+                if not self.multiobj:
+                    print('%d\t%s\t%0.3f\t%s' %
+                          (nfe, elapsed, self.best_f, self.best_P))
+                else:
+                    print('# nfe = %d\n%s' % (nfe, self.best_f))
+                    print(self.best_f.shape)
+                snapshots['nfe'].append(nfe)
+                snapshots['time'].append(elapsed)
+                snapshots['best_f'].append(self.best_f)
+                snapshots['best_P'].append(self.best_P)
+                last_log = nfe
+
+        return snapshots
+
 
 #         if parallel:
 #             from mpi4py import MPI
