@@ -6,6 +6,8 @@ from folsom import Folsom
 
 from ptreeopt import PTreeOpt
 
+import logging
+
 # Example to run optimization and save results
 np.random.seed(17)
 
@@ -26,5 +28,8 @@ algorithm = PTreeOpt(model.f,
                      )
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO,
+        format='[%(processName)s/%(levelname)s:%(filename)s:%(funcName)s] %(message)s')
+    
     # With only 1000 function evaluations this will not be very good
     snapshots = algorithm.run(max_nfe=1000, log_frequency=100)

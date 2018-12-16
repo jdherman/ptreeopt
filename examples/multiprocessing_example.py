@@ -1,7 +1,9 @@
 import sys
 sys.path.append('..')
 
+import logging
 import numpy as np
+
 from folsom import Folsom
 from ptreeopt import PTreeOpt, MultiprocessingExecutor
 
@@ -27,6 +29,9 @@ algorithm = PTreeOpt(model.f,
                      )
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO,
+        format='[%(processName)s/%(levelname)s:%(filename)s:%(funcName)s] %(message)s')
+
         
     # With only 1000 function evaluations this will not be very good
     with MultiprocessingExecutor() as executor:
