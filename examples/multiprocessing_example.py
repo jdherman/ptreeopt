@@ -31,8 +31,7 @@ algorithm = PTreeOpt(model.f,
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO,
         format='[%(processName)s/%(levelname)s:%(filename)s:%(funcName)s] %(message)s')
-
         
     # With only 1000 function evaluations this will not be very good
     with MultiprocessingExecutor() as executor:
-        snapshots = algorithm.run(1000, 10, executor)
+        snapshots = algorithm.run(1000, 10, executor=executor)
