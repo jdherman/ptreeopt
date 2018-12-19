@@ -135,7 +135,7 @@ class MultiprocessingExecutor(BaseExecutor):
     
     TODO: I used a multiprocessing.Pool rather than
     concurrent.futures.ProcessPool because the initializer
-    functions are available in python 3.6 for Pool, but require
+    functions are available in python 3.6 for Pool, but requires
     3.7 for ProcessPool
     
     '''

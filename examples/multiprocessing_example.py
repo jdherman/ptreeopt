@@ -10,8 +10,6 @@ from ptreeopt import PTreeOpt, MultiprocessingExecutor
 # Example to run optimization and save results
 np.random.seed(17)
 
-
-
 model = Folsom('folsom/data/folsom-daily-w2016.csv',
                sd='1995-10-01', ed='2016-09-30', use_tocs=False)
 
