@@ -32,4 +32,6 @@ if __name__ == '__main__':
         format='[%(processName)s/%(levelname)s:%(filename)s:%(funcName)s] %(message)s')
     
     # With only 1000 function evaluations this will not be very good
-    snapshots = algorithm.run(max_nfe=1000, log_frequency=100)
+    best_solution, best_score, snapshots = algorithm.run(max_nfe=1000, 
+                                                     log_frequency=100,
+                                                     convergence=100)

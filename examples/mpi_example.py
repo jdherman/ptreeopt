@@ -41,6 +41,7 @@ if __name__ == '__main__':
     # With only 1000 function evaluations this will not be very good
     # should be run with mpiexec -n 6 python -m mpi4py.futures mpi_example.py
     with MPIExecutor() as executor:
-        snapshots = algorithm.run(1000, 10, executor=executor)
-
-# pickle.dump(snapshots, open('example-results.pkl', 'wb'))
+        best_solution, best_score, snapshots = algorithm.run(1000,
+                                                     log_frequency=100,
+                                                     convergence=100,                                                             
+                                                     executor=executor)

@@ -11,7 +11,6 @@ import numpy as np
 from .tree import PTree
 from ptreeopt.executors import SequentialExecutor
 
-
 logger = logging.getLogger(__name__)
 
 def function_runner(func, solution):
@@ -115,7 +114,7 @@ class PTreeOpt(object):
 
             if self.best_f is None or self.objectives[parents[0]] < self.best_f:
                 self.best_f = self.objectives[parents[0]]
-                self.best_P = copy.deepcopy(self.population[parents[0]])
+                self.best_p = copy.deepcopy(self.population[parents[0]])
 
         else:
             parents = [self.binary_tournament(self.population, self.objectives)
@@ -123,9 +122,9 @@ class PTreeOpt(object):
 
             if self.best_f is None:
                 self.best_f = self.objectives[parents]
-                self.best_P = self.population[parents]
+                self.best_p = self.population[parents]
             else:
-                self.best_P, self.best_f = self.archive_sort(self.best_P,
+                self.best_p, self.best_f = self.archive_sort(self.best_p,
                                                  self.best_f, self.population, 
                                                  self.objectives)
 
@@ -160,7 +159,7 @@ class PTreeOpt(object):
             child.prune()
             self.population[i] = child
 
-    def run(self, max_nfe=100, log_frequency=10, convergence=True,
+    def run(self, max_nfe=100, log_frequency=10, convergence=10,
             executor=SequentialExecutor()):
         '''Run the optimization algorithm
         
@@ -168,23 +167,32 @@ class PTreeOpt(object):
         ----------
         max_nfe : int, optional
         log_frequency :  int, optional
-        convergence : bool, optional
+        convergence : int or None, optional
+                      int specifies frequency of storing convergence 
+                      information. If None, no convergen information 
+                      is retained.
         executor : subclass of BaseExecutor, optional
         
         Returns
         -------
+        best_p
+            best solution or archive in case of many objective
+        best_f
+            best score(s)
+        snapshots
+            if convergence is not None, convergence information
         
         '''
 
         start_time = time.time()
-        nfe, last_log = 0, 0
+        nfe, last_log, last_convergence = 0, 0, 0
 
         self.best_f = None
-        self.best_P = None
+        self.best_p = None
         self.population = np.array([self.random_tree() for _ in
                                     range(self.popsize)])
 
-        if convergence:
+        if convergence is not None:
             snapshots = {'nfe': [], 'time': [], 'best_f': [],
                          'best_P': []}
         else:
@@ -208,26 +216,29 @@ class PTreeOpt(object):
             self.iterate()
 
             if nfe >= last_log + log_frequency:
+                last_log = nfe
                 elapsed = datetime.timedelta(
                     seconds=time.time() - start_time).seconds
 
                 if not self.multiobj:
                     logger.info(self.process_log_message.format(nfe, 
-                                    elapsed, self.best_f, self.best_P))
+                                    elapsed, self.best_f, self.best_p))
                 else:
                     # TODO:: to be tested
                     logger.info('# nfe = %d\n%s\n%s' % (nfe, self.best_f,
                                                     self.best_f.shape))
                     
-            if convergence:
-                # TODO:: do we want to have a convergence frequency
+            if nfe >= last_convergence + convergence:
+                last_convergence = nfe
                 snapshots['nfe'].append(nfe)
                 snapshots['time'].append(elapsed)
                 snapshots['best_f'].append(self.best_f)
-                snapshots['best_P'].append(self.best_P)
-                last_log = nfe
+                snapshots['best_P'].append(self.best_p)
 
-        return snapshots
+        if convergence:
+            return self.best_p, self.best_f, snapshots
+        else:
+            return self.best_p, self.best_f
 
     def random_tree(self, terminal_ratio=0.5):
         '''

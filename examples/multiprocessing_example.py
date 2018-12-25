@@ -32,4 +32,8 @@ if __name__ == '__main__':
         
     # With only 1000 function evaluations this will not be very good
     with MultiprocessingExecutor() as executor:
-        snapshots = algorithm.run(1000, 10, executor=executor)
+        best_solution, best_score, snapshots = algorithm.run(max_nfe=1000, 
+                                                     log_frequency=100,
+                                                     convergence=100,
+                                                     executor=executor)
+    print(best_solution)
