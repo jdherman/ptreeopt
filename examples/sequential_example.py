@@ -34,4 +34,4 @@ if __name__ == '__main__':
     # With only 1000 function evaluations this will not be very good
     best_solution, best_score, snapshots = algorithm.run(max_nfe=1000, 
                                                      log_frequency=100,
-                                                     convergence=100)
+                                                     snapshot_frequency=100)

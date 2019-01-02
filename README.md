@@ -4,21 +4,22 @@ Heuristic policy search for control of dynamic systems. Uses genetic programming
 
 **Requirements:** [NumPy](http://www.numpy.org/), [PyGraphviz](https://pygraphviz.github.io/) (optional). The example model also uses [pandas](http://pandas.pydata.org/) and [Matplotlib](http://matplotlib.org/) but these are not strictly required.
 
-Tested with Python 2.7 and 3.x. Contributions and bug reports welcome!
+Tested with Python 2.7 and 3.x. Still in active development, especially the multiobjective optimization and documentation. Contributions and bug reports welcome!
 
 **Citation:** [Link to paper](http://www.sciencedirect.com/science/article/pii/S1364815217306540)
 ```
 Herman, J.D. and Giuliani, M. Policy tree optimization for threshold-based water resources 
 management over multiple timescales, Environmental Modelling and Software, 99, 39-51, 2018.
 ```
-The full set of experiments and data are available in the [paper branch](https://github.com/jdherman/ptreeopt/tree/paper).
+The full set of experiments and data are available in the [paper branch](https://github.com/jdherman/ptreeopt/tree/paper). Note the API has since changed in the master branch.
 
-### Example
+### Quick Start
 This example develops a control policy based on a simulation model of Folsom Reservoir.
 ```python
 import numpy as np
 from folsom import Folsom
 from ptreeopt import PTreeOpt
+import logging
 
 np.random.seed(17) # to be able to replicate the results
 
@@ -31,16 +32,27 @@ algorithm = PTreeOpt(model.f,
                     discrete_actions = True,
                     action_names = ['Release_Demand', 'Hedge_90', 'Hedge_80', 
                     'Hedge_70', 'Hedge_60', 'Hedge_50', 'Flood_Control'],
-                    mu = 20,
-                    cx_prob = 0.70,
+                    mu = 20, # number of parents per generation
+                    cx_prob = 0.70, # crossover probability
                     population_size = 100,
                     max_depth = 7
                     )
 
-snapshots = algorithm.run(max_nfe = 1000, log_frequency = 100)
+logging.basicConfig(level=logging.INFO,format='[%(processName)s/%(levelname)s:%(filename)s:%(funcName)s] %(message)s')
+
+# With only 1000 function evaluations this will not be very good
+best_solution, best_score, snapshots = algorithm.run(max_nfe=1000, 
+                                                 log_frequency=100,
+                                                 snapshot_frequency=100)
 ```
 
-`model.f` is a simulation model that will be evaluated many times. The simulation model must be set up like this:
+The `logging` module will print to the console every `log_frequency` function evaluations. `snapshots` is a dictionary containing keys `'nfe', 'time', 'best_f', 'best_P'` (number of function evaluations, elapsed time, best objective function value, and best policy tree). Each key points to a list of length `max_nfe/snapshot_frequency`. The snapshots are used for convergence information, and are typically saved to a file for later analysis:
+```python
+import pickle
+pickle.dump(snapshots, open('snapshots.pkl', 'wb'))
+```
+
+`model.f` is a simulation model that will be evaluated many times. The simulation model must be set up to receive a policy and return an objective function value:
 ```python
 def f(P):
   # ...
@@ -58,22 +70,31 @@ def f(P):
 
 The Folsom simulation model ([link](https://github.com/jdherman/ptreeopt/blob/master/folsom/folsom.py)) gives a more detailed example. 
 
-`snapshots` is a dictionary containing keys `'nfe', 'time', 'best_f', 'best_P'` (number of function evaluations, elapsed time, best objective function value, and best policy tree). Each key points to a list of length `max_nfe/log_frequency`. 
+Functions for plotting results are described in a [separate readme](README-plotting.md).
 
-To save an image of the best policy (requires PyGraphviz):
+
+### Parallelization
+The example above runs in serial. Function evaluations can also be parallelized using either `multiprocessing` or `mpi4py`:
 ```python
-P = snapshots['best_P'][-1]
-P.graphviz_export('filename.svg')
+from ptreeopt import MultiprocessingExecutor
+
+with MultiprocessingExecutor(processes=4) as executor:
+    best_solution, best_score, snapshots = algorithm.run(max_nfe=1000, 
+                                                 log_frequency=100,
+                                                 snapshot_frequency=100,
+                                                 executor=executor)
+```
+```python
+from ptreeopt import MPIExecutor
+
+with MPIExecutor() as executor:
+    best_solution, best_score, snapshots = algorithm.run(max_nfe=1000,
+                                                 log_frequency=100,
+                                                 snapshot_frequency=100,
+                                                 executor=executor)
 ```
 
-or save all results as a pickle for later analysis:
-```python
-import pickle
-pickle.dump(snapshots, open('snapshots.pkl', 'wb'))
-```
-
-### Parallel
-Use `algorithm.run(..., parallel=True)` to run in parallel (requires [mpi4py](http://pythonhosted.org/mpi4py/)). Then run `mpirun python main.py` on the command line or in a cluster job script. This is "generational" parallelization, meaning that the number of processors should not exceed the population size.
+Then run `mpirun -n 4 python -m mpi4py.futures mpi_example.py` on the command line or in a cluster job script. See the [examples](https://github.com/jdherman/ptreeopt/tree/master/examples) for more details. This is generational parallelization, meaning that the number of processors should not exceed the population size.
 
 ### License
-Copyright (C) 2017-18 Jon Herman and Matteo Giuliani. Released under the [MIT license](LICENSE.md).
+Copyright (C) 2017-19 [Contributors](https://github.com/jdherman/ptreeopt/graphs/contributors). Released under the [MIT license](LICENSE.md).

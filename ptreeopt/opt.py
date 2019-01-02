@@ -159,7 +159,7 @@ class PTreeOpt(object):
             child.prune()
             self.population[i] = child
 
-    def run(self, max_nfe=100, log_frequency=10, convergence=10,
+    def run(self, max_nfe=1000, log_frequency=100, snapshot_frequency=100,
             executor=SequentialExecutor()):
         '''Run the optimization algorithm
         
@@ -167,10 +167,10 @@ class PTreeOpt(object):
         ----------
         max_nfe : int, optional
         log_frequency :  int, optional
-        convergence : int or None, optional
-                      int specifies frequency of storing convergence 
-                      information. If None, no convergen information 
-                      is retained.
+        snapshot_frequency : int or None, optional
+                             int specifies frequency of storing convergence 
+                             information. If None, no convergence information 
+                             is retained.
         executor : subclass of BaseExecutor, optional
         
         Returns
@@ -180,19 +180,19 @@ class PTreeOpt(object):
         best_f
             best score(s)
         snapshots
-            if convergence is not None, convergence information
+            if snapshot_frequency is not None, convergence information
         
         '''
 
         start_time = time.time()
-        nfe, last_log, last_convergence = 0, 0, 0
+        nfe, last_log, last_snapshot = 0, 0, 0
 
         self.best_f = None
         self.best_p = None
         self.population = np.array([self.random_tree() for _ in
                                     range(self.popsize)])
 
-        if convergence is not None:
+        if snapshot_frequency is not None:
             snapshots = {'nfe': [], 'time': [], 'best_f': [],
                          'best_P': []}
         else:
@@ -228,14 +228,14 @@ class PTreeOpt(object):
                     logger.info('# nfe = %d\n%s\n%s' % (nfe, self.best_f,
                                                     self.best_f.shape))
                     
-            if nfe >= last_convergence + convergence:
-                last_convergence = nfe
+            if nfe >= last_snapshot + snapshot_frequency:
+                last_snapshot = nfe
                 snapshots['nfe'].append(nfe)
                 snapshots['time'].append(elapsed)
                 snapshots['best_f'].append(self.best_f)
                 snapshots['best_P'].append(self.best_p)
 
-        if convergence:
+        if snapshot_frequency:
             return self.best_p, self.best_f, snapshots
         else:
             return self.best_p, self.best_f
