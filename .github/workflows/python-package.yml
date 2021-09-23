@@ -25,7 +25,8 @@ jobs:
           --user
     
       - name: build binary wheel and a source tarball
-        run: python setup.py sdist
+        run: |
+          python setup.py sdist
     
       - name: Publish distribution to Test PyPI
       - uses: pypa/gh-action-pypi-publish@main
