@@ -10,26 +10,27 @@ jobs:
     name: Build and publish Python distribution
     runs-on: macos-11
     steps:
-      - name: Set up Python 3.9
-      - uses: actions/checkout@main
+      - name: Checkout main branch
+        uses: actions/checkout@main
       
-      - uses: actions/setup-python@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
         with:
           python-version: '3.9'
       
       - name: Install dependencies
-        run: |
+        run: >-
           python -m 
           pip install
           build
           --user
     
       - name: build binary wheel and a source tarball
-        run: |
+        run: >-
           python setup.py sdist
     
       - name: Publish distribution to Test PyPI
-      - uses: pypa/gh-action-pypi-publish@main
+        uses: pypa/gh-action-pypi-publish@main
         with:
           password: ${{ secrets.test_pypi_password }}
           repository_url: https://test.pypi.org/legacy
