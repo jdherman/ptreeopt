@@ -8,7 +8,7 @@ on:
 jobs:
   build-n-publish:
     name: Build and publish Python distribution
-    runs-on: macos-11
+    runs-on: macos-latest
     steps:
       - name: Checkout main branch
         uses: actions/checkout@main
