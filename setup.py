@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(name='ptreeopt',
       version='1.0.1',
-      author='Jonathan Herman, Matteo Guilliani',
+      author='Jonathan Herman, Matteo Guiliani',
       author_email='jdherman@ucdavis.edu',
       url='https://github.com/jdherman/ptreeopt',
       description='A heuristic policy search model designed for the conrol of dynamic systems.',
