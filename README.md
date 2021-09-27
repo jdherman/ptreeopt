@@ -4,14 +4,14 @@ Heuristic policy search for control of dynamic systems. Uses genetic programming
 
 **Requirements:** [NumPy](http://www.numpy.org/), [PyGraphviz](https://pygraphviz.github.io/) (optional). The example model also uses [pandas](http://pandas.pydata.org/) and [Matplotlib](http://matplotlib.org/) but these are not strictly required.
 
-Tested with Python 2.7 and 3.x. Still in active development, especially the multiobjective optimization and documentation. Contributions and bug reports welcome!
-
 **Citation:** [Link to paper](http://www.sciencedirect.com/science/article/pii/S1364815217306540)
 ```
 Herman, J.D. and Giuliani, M. Policy tree optimization for threshold-based water resources 
 management over multiple timescales, Environmental Modelling and Software, 99, 39-51, 2018.
 ```
-The full set of experiments and data are available in the [paper branch](https://github.com/jdherman/ptreeopt/tree/paper). Note the API has since changed in the master branch.
+The full set of experiments and data are available in the [paper branch](https://github.com/jdherman/ptreeopt/tree/paper). Note the API has since changed in the main branch.
+
+**Installation:** (experimental) `pip install -i https://test.pypi.org/simple/ ptreeopt`
 
 ### Quick Start
 This example develops a control policy based on a simulation model of Folsom Reservoir.
@@ -97,4 +97,4 @@ with MPIExecutor() as executor:
 Then run `mpirun -n 4 python -m mpi4py.futures mpi_example.py` on the command line or in a cluster job script. See the [examples](https://github.com/jdherman/ptreeopt/tree/master/examples) for more details. This is generational parallelization, meaning that the number of processors should not exceed the population size.
 
 ### License
-Copyright (C) 2017-19 [Contributors](https://github.com/jdherman/ptreeopt/graphs/contributors). Released under the [MIT license](LICENSE.md).
+Copyright (C) 2017-21 [Contributors](https://github.com/jdherman/ptreeopt/graphs/contributors). Released under the [MIT license](LICENSE.md).
